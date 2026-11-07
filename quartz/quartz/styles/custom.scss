@@ -1,0 +1,168 @@
+@use "./base.scss";
+
+/* =======================================================================
+   生活工作读书新知 — 自定义样式
+   OUR single style entry(定制 vs 源码分离:只在此 + components/custom、
+   plugins/custom 改,绝不动 upstream 文件)。见 CUSTOMIZATIONS.md。
+   ======================================================================= */
+
+/* --- CJK 字体回退:Latin 走 config(Inter),中文走系统优雅字体 --- */
+:root {
+  --cjk: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC",
+    sans-serif;
+}
+body {
+  font-family: var(--bodyFont), var(--cjk);
+  -webkit-font-smoothing: antialiased;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.page-title {
+  font-family: var(--headerFont), var(--cjk);
+}
+
+/* --- 排版:text-wrap(turntrout 借鉴)+ 更舒展行距 --- */
+article {
+  line-height: 1.78;
+}
+article p,
+article li {
+  text-wrap: pretty;
+}
+h1,
+h2,
+h3,
+.page-title,
+.description {
+  text-wrap: balance;
+}
+
+/* --- 引用块:暖沙绿竖线 --- */
+blockquote {
+  border-left: 3px solid var(--secondary);
+}
+
+/* --- 自定义页脚(SiteFooter.tsx)--- */
+.site-footer {
+  opacity: 0.85;
+  font-size: 0.82em;
+  text-align: center;
+  color: var(--gray);
+  margin-top: 2.5rem;
+}
+.site-footer p {
+  margin: 0.25rem 0;
+}
+.site-footer a {
+  color: var(--gray);
+  text-underline-offset: 2px;
+}
+.site-footer .sep {
+  margin: 0 0.5em;
+}
+
+/* =======================================================================
+   卡片网格(components/custom/CardList.tsx 使用)
+   ======================================================================= */
+.card-section {
+  margin-top: 1.8rem;
+}
+.card-section-title {
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: var(--gray);
+  border-bottom: 1px solid var(--lightgray);
+  padding-bottom: 0.45rem;
+  margin: 0 0 1.1rem;
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  gap: 1.1rem;
+  margin: 1.2rem 0 2rem;
+  padding: 0;
+  list-style: none;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--light);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  border-color: var(--secondary);
+}
+.card a.card-link {
+  text-decoration: none;
+  color: inherit;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.card-thumb {
+  width: 100%;
+  height: 168px;
+  object-fit: cover;
+  background: var(--lightgray);
+  display: block;
+}
+.card-body {
+  padding: 0.75rem 0.9rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.42rem;
+  flex: 1;
+}
+.card-badge {
+  align-self: flex-start;
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  color: var(--secondary);
+  background: var(--highlight);
+  border-radius: 999px;
+  padding: 0.12rem 0.6rem;
+}
+.card-title {
+  font-family: var(--headerFont), var(--cjk);
+  font-weight: 600;
+  font-size: 1.02rem;
+  line-height: 1.32;
+  color: var(--dark);
+  margin: 0;
+}
+.card-desc {
+  font-size: 0.85rem;
+  color: var(--darkgray);
+  line-height: 1.55;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-meta {
+  margin-top: auto;
+  padding-top: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--gray);
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.card.no-thumb .card-body {
+  padding-top: 0.95rem;
+}
