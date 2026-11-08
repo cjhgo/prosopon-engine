@@ -14,6 +14,10 @@ export const sharedPageComponents: SharedLayout = {
         condition: (page) => page.fileData.slug === "index",
       }),
     ),
+    // 可折叠标题(渲染空占位,脚本给正文 heading 注入 toggle);全站加载
+    Component.CollapsibleHeaders(),
+    // telescopic 可展开文本(脚本把 code.telescopic-source 渲染成可展开文本);全站加载
+    Component.TelescopicText(),
   ],
   footer: Component.SiteFooter(),
 }

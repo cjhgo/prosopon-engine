@@ -25,6 +25,8 @@ import Flex from "./Flex"
 import ConditionalRender from "./ConditionalRender"
 import CardList from "./custom/CardList"
 import SiteFooter from "./custom/SiteFooter"
+import CollapsibleHeaders from "./custom/CollapsibleHeaders"
+import TelescopicText from "./custom/TelescopicText"
 
 export {
   ArticleTitle,
@@ -54,4 +56,6 @@ export {
   ConditionalRender,
   CardList,
   SiteFooter,
+  CollapsibleHeaders,
+  TelescopicText,
 }

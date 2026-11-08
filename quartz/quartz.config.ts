@@ -66,6 +66,7 @@ const config: QuartzConfig = {
         },
         keepBackground: false,
       }),
+      Plugin.TelescopicText(), // ```telescopic 代码块 → 客户端可展开文本
       Plugin.ObsidianFlavoredMarkdown({ enableInHtmlEmbed: false }),
       // 本地相对图 → 扁平 /assets/<hash>(解耦 slug + 迁 COS 只换 base);在 ofm 之后处理 image 节点
       Plugin.FlattenLocalAssets(),
@@ -88,6 +89,7 @@ const config: QuartzConfig = {
       }),
       Plugin.Assets(),
       Plugin.AssetManifest(), // 扁平图 → public/assets/<hash> + assets-manifest.json
+      Plugin.RawMarkdown(), // 每页 <slug>.md 原文 + llms-full.txt(给 AI/读者喂原文)
       Plugin.Static(),
       Plugin.Favicon(),
       Plugin.NotFoundPage(),

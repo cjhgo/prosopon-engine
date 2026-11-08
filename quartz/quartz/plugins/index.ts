@@ -48,6 +48,8 @@ export * from "./emitters"
 // 自定义(见 CUSTOMIZATIONS.md):
 export { FlattenLocalAssets, AssetManifest } from "./custom/flattenAssets"
 export { FrontmatterDate } from "./custom/frontmatterDate"
+export { RawMarkdown } from "./custom/rawMarkdown"
+export { TelescopicText } from "./custom/telescopicText"
 
 declare module "vfile" {
   // inserted in processors.ts
