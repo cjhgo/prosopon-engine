@@ -6,20 +6,14 @@ export const sharedPageComponents: SharedLayout = {
   head: Component.Head(),
   header: [],
   afterBody: [
-    // 首页底部:按大类 folder 分段卡片 feed,仅 index 显示(对齐 content/ 的 历史·思考·随笔)
-    // 内容分类只有 folder 一个轴;随笔 = 短内容 folder(替掉早期的 type 概念)
-    Component.ConditionalRender({
-      component: Component.CardList({ title: "历史", folder: "历史" }),
-      condition: (page) => page.fileData.slug === "index",
-    }),
-    Component.ConditionalRender({
-      component: Component.CardList({ title: "思考", folder: "思考" }),
-      condition: (page) => page.fileData.slug === "index",
-    }),
-    Component.ConditionalRender({
-      component: Component.CardList({ title: "随笔", folder: "随笔" }),
-      condition: (page) => page.fileData.slug === "index",
-    }),
+    // 首页底部:按大类 folder 分段卡片 feed,仅 index 显示(对齐 content/ 的 5 大 folder)
+    // 内容分类只有 folder 一个轴;随笔 = 短内容 folder(A 方案:独立第五类)。空 folder 自动不渲染。
+    ...["生活", "工作", "读书", "新知", "随笔"].map((f) =>
+      Component.ConditionalRender({
+        component: Component.CardList({ title: f, folder: f }),
+        condition: (page) => page.fileData.slug === "index",
+      }),
+    ),
   ],
   footer: Component.SiteFooter(),
 }
