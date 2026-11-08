@@ -150,7 +150,7 @@ npx quartz build -d ../../prosopon-source/content --serve
 2. **自定义件逐个回归**：卡片首页、折叠标题、telescopic、页脚备案号、`.md` 源入口、**OG 中文**。
 3. **图片链路**：本地预览 `/assets/<hash>` 正常；`ASSET_BASE_URL=https://assets.junhangc.cn` 时 URL 指向 OSS；`public/` 下**没有**源图僵尸副本。
 4. **Bases**：放一个示例 `.base` + 3 条电影/读书 note，跑 `table/cards/gallery/board`。
-5. **部署预演**：`bin/vps deploy-dir ... --domain v5.junhangc.cn`（泛域名证书已覆盖），线上自验后再切 `prosopon.junhangc.cn`。
+5. **上线**（2026-11-09 执行）：跳过预演子域，直接 `scripts/deploy.sh` → 正式站 `prosopon.junhangc.cn`；线上自验见 §八。
 
 ---
 
@@ -224,4 +224,4 @@ npx quartz build -d ../../prosopon-source/content --serve
 
 - **Bases URL**：`观影.base` 产出 `观影.base.html`（aarnphm 是干净的 `/cinematheque`）。若要干净 URL，可在 `观影.md` 里用 ` ```base ` 代码块嵌入（v5 transformer 支持），或后续给 BasesPage 加 slug 处理。
 - **OG 字体源**：fork 从 `fastly.jsdelivr.net` 拉 Noto Sans CJK SC（`cdn.jsdelivr.net` 本机直连失败）；首次构建下载 16MB，缓存在 `.quartz-cache/fonts/`（gitignored）。
-- **部署预演**：尚未跑 `v5.junhangc.cn`；下一步可先部署预演子域，再切正式站。
+- **上线**：2026-11-09 已直接部署正式站（跳过预演）。线上自验：首页 200、`_refer` 404、每页 OG webp 200、OSS 图 200、sitemap/RSS 200。
