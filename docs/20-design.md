@@ -30,11 +30,15 @@
   - emitter:按 REGISTRY 把物理图拷到 `public/assets/<hash>.ext`(扁平、hash 去重)+ 产 `static/assets-manifest.json`(hash→url/src/refs/size/alt)。
   - **数据流**:源 md 标准相对图 → transformer 改写+登记 → emitter 拷贝扁平目录+出 manifest。
   - **性质兑现**:与 slug/folder 解耦(内容挪动 URL 不变)、同图去重、**迁 COS 只换 `/assets/` base**。manifest = 图片总体视图 db + pi-alt 回填 alt 的地基。
+  - **生产/预览切换**:环境变量 `ASSET_BASE_URL`(deploy 设 `https://assets.junhangc.cn` → 图走 OSS;serve 留空 → 本地 `/assets/`)。见 tool_use §10。
 - **frontmatterDate.ts**(transformer `FrontmatterDate`)—— 替掉内置 CreatedModifiedDate(tool_use §6)。只认 frontmatter `date`(或 created/modified/published),有则设 `file.data.dates`,无则 `delete dates`(留白,绝不伪造)。`defaultDateType: created`。
 
-### 对 upstream 的一处侵入(有记录的例外)
+### 对 upstream 的侵入(有记录的例外,升级 Quartz 时手动 merge)
 
-- **emitters/assets.ts**:给 Assets emitter 加 `isManaged()` 判断——`import { MANAGED_SRCS }` 后跳过已被扁平化接管的图,避免源结构僵尸副本(tool_use §5 后半)。这是**唯一改动的 upstream 文件**(除两个 index.ts),升级时注意。
+1. **emitters/assets.ts**:Assets emitter 加 `isManaged()`(`import { MANAGED_SRCS }`)跳过已扁平化接管的图,避免源结构僵尸副本(tool_use §5)。
+2. **util/og.tsx**:`getSatoriFonts` 末尾追加 Noto Sans CJK SC fallback 修 og 中文 NO GLYPH(tool_use §9)。字体首次下载缓存 `.quartz-cache/fonts/noto-sans-cjk-sc.otf`。
+3. 注册点:`components/index.ts`、`plugins/index.ts`(加自定义件 import/export)。
++ config 层:`quartz.config.ts`(baseUrl=prosopon.junhangc.cn、天青盘、插件链)、`quartz.layout.ts`(首页 folder 分段)。
 
 ## 内容组织模型(engine 侧的消费约定)
 

@@ -54,3 +54,17 @@ Quartz 内置 `Assets` emitter **按源目录结构**拷图 → 上线 URL = `/�
 - **wikilink(图的边)**:按名解析,folder 无关。
 - **folder(物理 + 面包屑)**:只管文件放哪 + 面包屑定位,**不承载唯一分类**。
 - `[leaky]` 「把 Quartz 当 Hugo 使」= folder 成为唯一组织 + 链接按路径 + 无 frontmatter 视图。只要保留后两者,分 folder 是锦上添花不是退化。详见上游 hypertext-数字花园.md §1.5a。
+- **本仓落地**:内容分类**只用 folder**(不用 `type` 字段——「长短文」信息量太低不配一个字段);短内容统一放 `随笔/`。首页 CardList 按 folder 分段(生活/工作/读书/新知/随笔)。
+
+## 9. `[leaky]` og-image 中文会 NO GLYPH(satori 不 fallback CJK)
+
+- `CustomOgImages` 用 **satori** 离线渲染(build 时 HTML→SVG→图),字体只从 `config.theme.typography` 取(我们是 Inter,纯拉丁)。
+- **satori 不像浏览器会自动 fallback 到系统 CJK 字体** → 中文全渲染成 `NO GLYPH` 黑块(英文/数字正常)。浏览器里中文正常是因浏览器有系统 fallback,og 离线生成没有。
+- **解**:satori 支持**多字体 fallback**(按字形在数组里逐个找)。在拉丁字体后**追加一个中文字体**(Noto Sans CJK SC),拉丁走 Inter、中文走 Noto。
+- `[leaky]` **satori 吃 ttf/otf/woff,不吃 woff2**(现代 CJK 子集字体多只发 woff2,取不到)→ 用完整 OTF(16MB),首次 build 下载缓存 `.quartz-cache/fonts`。
+- 实现落点:改 `util/og.tsx` 的 `getSatoriFonts`(字体集中加载处,一改全覆盖),见 20-design。
+
+## 10. 部署:图走 OSS / HTML 走 ECS 的 ASSET_BASE 切换
+
+- `flattenAssets` 读环境变量 `ASSET_BASE_URL`:**生产**(deploy)设 `https://assets.junhangc.cn` → HTML 里图 URL 指 OSS;**预览**(serve)留空 → `/assets/<hash>` 由本地 Quartz 服务。同一份源,两种产出。
+- 为什么:ECS 云助手上传是分块(慢),图(大头)挪 OSS、HTML(小)留 ECS。部署管线见 aliyun-ops/references/deploy-ctx.md(含 OSS 中转 tar 治分块往返)。
