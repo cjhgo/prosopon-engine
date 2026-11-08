@@ -86,6 +86,16 @@ export default (() => {
         <meta name="description" content={description} />
         <meta name="generator" content="Quartz" />
 
+        {/* markdown 源 alternate:每页 <slug>.md(由 RawMarkdown emitter 生成),agent/读者可发现 */}
+        {fileData.slug && fileData.slug !== "404" && (
+          <link
+            rel="alternate"
+            type="text/markdown"
+            title="Markdown source"
+            href={joinSegments(baseDir, `${fileData.slug}.md`)}
+          />
+        )}
+
         {css.map((resource) => CSSResourceToStyleElement(resource, true))}
         {js
           .filter((resource) => resource.loadTime === "beforeDOMReady")
