@@ -22,6 +22,7 @@
 | `plugins/custom/frontmatterDate.ts` | 只认 frontmatter date,缺则留白(不伪造) | docs/10 §6, docs/20 |
 | `components/index.ts` / `plugins/index.ts` | 注册自定义件(唯二要 merge 的 upstream 文件) | docs/20 |
 | `emitters/assets.ts` | 跳过已扁平化的图(MANAGED_SRCS) | docs/20 |
+| `util/og.tsx` | og-image 中文 NO GLYPH 修复:getSatoriFonts 末尾追加 Noto Sans CJK SC fallback(首次下载缓存 .quartz-cache/fonts) | docs/10 §9 |
 | `skills/{xhs-publish,alt-text}/` | 发布 skill 占位 + pi-alt 脚本(就绪待 run) | — |
 
 ## turntrout 拿来(license=CC BY-SA 4.0,保 copyleft-free)

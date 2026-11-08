@@ -16,7 +16,7 @@ const config: QuartzConfig = {
       provider: "plausible",
     },
     locale: "zh-CN",
-    baseUrl: "quartz.junhangc.cn",
+    baseUrl: "prosopon.junhangc.cn",
     ignorePatterns: ["private", "templates", ".obsidian"],
     defaultDateType: "created",
     theme: {
@@ -91,7 +91,7 @@ const config: QuartzConfig = {
       Plugin.Static(),
       Plugin.Favicon(),
       Plugin.NotFoundPage(),
-      // Comment out CustomOgImages to speed up build time
+      // og-image(中文由 util/og.tsx getSatoriFonts 追加 CJK 字体解决 NO GLYPH,见 docs)
       Plugin.CustomOgImages(),
     ],
   },

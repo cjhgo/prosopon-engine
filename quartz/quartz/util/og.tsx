@@ -62,7 +62,34 @@ export async function getSatoriFonts(headerFont: FontSpecification, bodyFont: Fo
     ...bodyFonts.filter((font): font is NonNullable<typeof font> => font !== null),
   ]
 
+  // [自定义] 追加中文字体做 fallback,修 og-image 中文 NO GLYPH(satori 不像浏览器自动 fallback CJK)。
+  // satori 多字体按字形逐个找:拉丁走上面的 Inter,中文走 Noto Sans CJK SC。见 docs/10-tool_use.md。
+  const cjk = await getCjkFallbackFont()
+  if (cjk) fonts.push(cjk)
+
   return fonts
+}
+
+// Noto Sans CJK SC 完整 OTF(satori 吃 otf,不吃 woff2)。首次下载缓存到 .quartz-cache/fonts。
+const CJK_FONT_URL =
+  "https://cdn.jsdelivr.net/gh/notofonts/noto-cjk@main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf"
+async function getCjkFallbackFont(): Promise<SatoriOptions["fonts"][0] | null> {
+  const cache = path.join(QUARTZ, ".quartz-cache", "fonts", "noto-sans-cjk-sc.otf")
+  try {
+    let data: Buffer
+    try {
+      data = Buffer.from(await fs.readFile(cache))
+    } catch {
+      const res = await fetch(CJK_FONT_URL)
+      if (!res.ok) return null
+      data = Buffer.from(await res.arrayBuffer())
+      await fs.mkdir(path.dirname(cache), { recursive: true })
+      await fs.writeFile(cache, data)
+    }
+    return { name: "Noto Sans CJK SC", data, weight: 400, style: "normal" }
+  } catch {
+    return null
+  }
 }
 
 /**
