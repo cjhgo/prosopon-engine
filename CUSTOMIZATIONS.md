@@ -22,7 +22,7 @@
 
 | 文件 | 类型 | 做了什么 |
 |---|---|---|
-| `quartz.config.ts` | 改配置 | pageTitle=生活工作读书新知;字体 Inter / JetBrains Mono;**暖色·文人盘**(light+dark,参考 cyhone:奶油底+暖褐字+沙绿强调+暖赭次强调) |
+| `quartz.config.ts` | 改配置 | pageTitle=生活工作读书新知;字体 Inter / JetBrains Mono;**天青·文人盘**(light+dark):冷白微青底 + 黛青字 + 天青强调 `#2f8296`(汝窑/宋瓷向,偏青)+ 克制暖赭点缀 `#bc7a3e`(冷暖对比避免冷死)。主色由"蓝调偏爱"定,偏青方向;可微调轴:更墨(藏青)/ 点缀换金或去掉 |
 | `quartz.layout.ts` | 改布局 | 首页 afterBody 两段卡片 feed(随记 / 文章);footer 换成 SiteFooter |
 | `quartz/styles/custom.scss` | 自定义样式 | CJK 字体回退(Latin 走 Inter、中文走系统);`text-wrap: pretty/balance`(turntrout 借鉴);卡片/分区/页脚样式 |
 | `quartz/components/custom/CardList.tsx` | 新组件 | 读 `allFiles` 渲染分区卡片网格(type 徽章 / cover 缩略图 / 日期 / tag);props: `title/types/exclude/limit` |
