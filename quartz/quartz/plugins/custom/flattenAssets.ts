@@ -31,6 +31,9 @@ export interface AssetEntry {
 }
 const REGISTRY = new Map<string, AssetEntry>()
 
+// 已被扁平化接管的源文件绝对路径集合;Assets emitter 据此跳过,避免僵尸副本。
+export const MANAGED_SRCS = new Set<string>()
+
 function hashFile(absSrc: string): { hash: string; size: number } | null {
   try {
     const buf = fs.readFileSync(absSrc)
@@ -68,7 +71,28 @@ export const FlattenLocalAssets: QuartzTransformerPlugin = () => ({
             REGISTRY.set(h.hash, entry)
           }
           entry.refs.add(slug)
+          MANAGED_SRCS.add(absSrc)
           return `/assets/${h.hash}${ext}`
+        }
+
+        // frontmatter.cover(相对 content 根写,如 "生活/image/x.png"):扁平化回写
+        const fm = file.data.frontmatter as Record<string, unknown> | undefined
+        if (fm && typeof fm.cover === "string" && !/^https?:\/\//.test(fm.cover)) {
+          // cover 相对 content 根,不是相对本 md —— 用 content 根拼绝对路径
+          const contentRoot = mdDir.slice(0, mdDir.length - path.dirname(slug).length)
+          const absCover = path.resolve(contentRoot, decodeURIComponent(fm.cover))
+          const h = hashFile(absCover)
+          if (h) {
+            const ext = path.extname(absCover).toLowerCase()
+            let e = REGISTRY.get(h.hash)
+            if (!e) {
+              e = { absSrc: absCover, ext, refs: new Set(), size: h.size }
+              REGISTRY.set(h.hash, e)
+            }
+            e.refs.add(slug)
+            MANAGED_SRCS.add(absCover)
+            fm.cover = `/assets/${h.hash}${ext}` // 扁平、站点绝对
+          }
         }
 
         // 标准图节点

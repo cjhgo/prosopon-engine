@@ -25,12 +25,21 @@ const copyFile = async (argv: Argv, fp: FilePath) => {
   return dest
 }
 
+// 自定义(见 CUSTOMIZATIONS.md):被 FlattenLocalAssets 接管的图已扁平化到 /assets/<hash>,
+// 跳过它们的源结构副本,避免僵尸冗余(迁 COS 不带垃圾)。
+import { MANAGED_SRCS } from "../custom/flattenAssets"
+const isManaged = (argv: Argv, fp: FilePath): boolean => {
+  const abs = path.resolve(joinSegments(argv.directory, fp))
+  return MANAGED_SRCS.has(abs)
+}
+
 export const Assets: QuartzEmitterPlugin = () => {
   return {
     name: "Assets",
     async *emit({ argv, cfg }) {
       const fps = await filesToCopy(argv, cfg)
       for (const fp of fps) {
+        if (isManaged(argv, fp)) continue // 已被扁平化接管,不再拷源结构副本
         yield copyFile(argv, fp)
       }
     },
