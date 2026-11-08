@@ -17,7 +17,13 @@ const config: QuartzConfig = {
     },
     locale: "zh-CN",
     baseUrl: "prosopon.junhangc.cn",
-    ignorePatterns: ["private", "templates", ".obsidian"],
+    // 生产(deploy 设 QUARTZ_PROD=1)忽略 _refer(示例/参考区);本地预览可见。
+    ignorePatterns: [
+      "private",
+      "templates",
+      ".obsidian",
+      ...(process.env.QUARTZ_PROD ? ["_refer/**"] : []),
+    ],
     defaultDateType: "created",
     theme: {
       fontOrigin: "googleFonts",
