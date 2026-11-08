@@ -37,7 +37,8 @@ async function setupTelescopic() {
     code.dataset.ttDone = "1"
     const pre = code.closest("pre") ?? code
     try {
-      const node = create(code.textContent ?? "")
+      // separator: "" —— 中文同级不插空格(默认是空格,中文会说成「我 泡了茶」)
+      const node = create(code.textContent ?? "", { separator: "" })
       pre.replaceWith(node)
     } catch (e) {
       console.error("[telescopic] render failed", e)
