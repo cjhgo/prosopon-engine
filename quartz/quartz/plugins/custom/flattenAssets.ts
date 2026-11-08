@@ -22,6 +22,10 @@ import { write } from "../emitters/helpers"
 
 const ASSET_EXT = /\.(png|jpe?g|gif|webp|svg|avif|mp4|webm|mov|m4v)$/i
 
+// 资产基址:生产(deploy)设 ASSET_BASE_URL=https://assets.junhangc.cn → 图走 OSS;
+// 本地预览(serve)留空 → /assets/<hash> 由本地 Quartz 服务。末尾去斜杠。
+const ASSET_BASE = (process.env.ASSET_BASE_URL ?? "").replace(/\/$/, "")
+
 // transformer 与 emitter 共享:hash -> { absSrc, ext, refs:Set<slug>, bytes }
 export interface AssetEntry {
   absSrc: string
@@ -72,7 +76,7 @@ export const FlattenLocalAssets: QuartzTransformerPlugin = () => ({
           }
           entry.refs.add(slug)
           MANAGED_SRCS.add(absSrc)
-          return `/assets/${h.hash}${ext}`
+          return `${ASSET_BASE}/assets/${h.hash}${ext}`
         }
 
         // frontmatter.cover(相对 content 根写,如 "生活/image/x.png"):扁平化回写
@@ -91,7 +95,7 @@ export const FlattenLocalAssets: QuartzTransformerPlugin = () => ({
             }
             e.refs.add(slug)
             MANAGED_SRCS.add(absCover)
-            fm.cover = `/assets/${h.hash}${ext}` // 扁平、站点绝对
+            fm.cover = `${ASSET_BASE}/assets/${h.hash}${ext}` // 扁平、站点绝对
           }
         }
 
