@@ -16,6 +16,20 @@
 
 **唯一例外**:`components/index.ts`、`plugins/index.ts` 注册自定义件(加 import/export)。升级 upstream 时这是唯二要手动 merge 的上游文件。
 
+## 扩展点地图(每个 feature 住在 Quartz 流水线哪一层)
+
+> 心智模型:Quartz 不是"一个 md parser",是一条 5 段流水线;我们的定制散在**不同层**。这决定了升级/替换时各改各的、内容永远是纯 md。
+
+| 扩展点 | 阶段 | 本仓放这的 |
+|---|---|---|
+| ① markdown parser(mdast) | 解析 | `TelescopicText`(标记 ```telescopic 块)、`FlattenLocalAssets`(改写 image/cover URL)、`FrontmatterDate`(读 date) |
+| ② HTML AST(rehype/HAST) | 后处理 | (暂未用;排版/标题锚点可放这) |
+| ③ emitters(产出文件) | 构建 | `RawMarkdown`(`.md`+`llms.txt`)、`AssetManifest`(图片台账)、`CustomOgImages`+CJK 字体、contentPage 等 |
+| ④ components + 浏览器脚本 | 渲染/水合 | `CollapsibleHeaders`、`TelescopicText` 客户端、`CardList`、`SiteFooter`、`MarkdownSourceLink`、`Head.tsx` |
+| ⑤ config / layout / static | 配置 | 天青盘、字体、folder 分段、`static/telescopic`(客户端库) |
+
+`[leaky]` 要点:**折叠标题不在 parser**(纯浏览器脚本给 DOM 加按钮);**伸缩文本解析在客户端**(parser 只标记代码块)。所以内容永远是普通 md,feature 不污染写作;各层解耦、可独立替换。
+
 ## 自定义件清单(实体 → 职责 → 治哪个 leaky)
 
 ### 组件(components/custom/)
