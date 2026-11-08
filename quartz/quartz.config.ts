@@ -67,6 +67,8 @@ const config: QuartzConfig = {
         },
         keepBackground: false,
       }),
+      // 本地图片标准相对路径 → wikilink(隐藏「本地预览 vs Quartz flat-url」矛盾,须在 ofm 之前)
+      Plugin.LocalImageToWikilink(),
       Plugin.ObsidianFlavoredMarkdown({ enableInHtmlEmbed: false }),
       Plugin.GitHubFlavoredMarkdown(),
       Plugin.TableOfContents(),

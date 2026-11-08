@@ -45,6 +45,8 @@ export function getStaticResourcesFromPlugins(ctx: BuildCtx) {
 export * from "./transformers"
 export * from "./filters"
 export * from "./emitters"
+// 自定义(见 CUSTOMIZATIONS.md):
+export { LocalImageToWikilink } from "./custom/localImageToWikilink"
 
 declare module "vfile" {
   // inserted in processors.ts
