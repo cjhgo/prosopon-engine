@@ -46,7 +46,7 @@ export * from "./transformers"
 export * from "./filters"
 export * from "./emitters"
 // 自定义(见 CUSTOMIZATIONS.md):
-export { LocalImageToWikilink } from "./custom/localImageToWikilink"
+export { FlattenLocalAssets, AssetManifest } from "./custom/flattenAssets"
 
 declare module "vfile" {
   // inserted in processors.ts

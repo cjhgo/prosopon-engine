@@ -29,7 +29,8 @@
 | `quartz/components/custom/SiteFooter.tsx` | 新组件 | 自定义页脚:去掉 Quartz/Discord 推广,放站点标语 + 备案号(`豫ICP备2025138597号-1`) |
 | `quartz/components/index.ts` | **注册(上游文件)** | +2 import、+2 export(CardList / SiteFooter) |
 | `skills/xhs-publish/` | skill 占位 | 将来的小红书发布器(读 prosopon-source 的双用 frontmatter) |
-| `skills/alt-text/` | skill 脚手架 | turntrout `alt-text-llm` 接入文档(未运行,缺 OpenRouter key) |
+| `quartz/plugins/custom/flattenAssets.ts` | 新插件(transformer+emitter) | **图片资产扁平化**:正文本地相对图/视频 → `/assets/<内容hash>.ext`(解耦 slug、同图去重、内容不变 URL 不变);emitter 拷到 `public/assets/` 扁平目录 + 产 `static/assets-manifest.json`(hash→url/src/refs/size/alt,图片总体视图 db 地基,pi-alt 回填 alt)。迁 COS 只换 `/assets/` base。注册在 ofm 之后(抓 image + ofm 生成的 video html 节点) |
+| `skills/alt-text/` | skill 脚手架 | turntrout `alt-text-llm` 接入文档(未运行);**计划改走本地 pi**,读 assets-manifest 回填 alt |
 
 ## turntrout「拿来」落地情况
 - ✅ **`text-wrap: pretty/balance`** —— 已入 custom.scss(纯 CSS、无 license 负担、CJK 受益)。

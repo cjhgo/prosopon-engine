@@ -67,9 +67,9 @@ const config: QuartzConfig = {
         },
         keepBackground: false,
       }),
-      // 本地图片标准相对路径 → wikilink(隐藏「本地预览 vs Quartz flat-url」矛盾,须在 ofm 之前)
-      Plugin.LocalImageToWikilink(),
       Plugin.ObsidianFlavoredMarkdown({ enableInHtmlEmbed: false }),
+      // 本地相对图 → 扁平 /assets/<hash>(解耦 slug + 迁 COS 只换 base);在 ofm 之后处理 image 节点
+      Plugin.FlattenLocalAssets(),
       Plugin.GitHubFlavoredMarkdown(),
       Plugin.TableOfContents(),
       Plugin.CrawlLinks({ markdownLinkResolution: "shortest" }),
@@ -88,6 +88,7 @@ const config: QuartzConfig = {
         enableRSS: true,
       }),
       Plugin.Assets(),
+      Plugin.AssetManifest(), // 扁平图 → public/assets/<hash> + assets-manifest.json
       Plugin.Static(),
       Plugin.Favicon(),
       Plugin.NotFoundPage(),
