@@ -27,6 +27,7 @@ import CardList from "./custom/CardList"
 import SiteFooter from "./custom/SiteFooter"
 import CollapsibleHeaders from "./custom/CollapsibleHeaders"
 import TelescopicText from "./custom/TelescopicText"
+import MarkdownSourceLink from "./custom/MarkdownSourceLink"
 
 export {
   ArticleTitle,
@@ -58,4 +59,5 @@ export {
   SiteFooter,
   CollapsibleHeaders,
   TelescopicText,
+  MarkdownSourceLink,
 }

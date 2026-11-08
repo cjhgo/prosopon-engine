@@ -32,6 +32,7 @@ export const defaultContentPageLayout: PageLayout = {
     Component.ArticleTitle(),
     Component.ContentMeta(),
     Component.TagList(),
+    Component.MarkdownSourceLink(), // 可见的「Markdown 源码 ↗」入口
   ],
   left: [
     Component.PageTitle(),
