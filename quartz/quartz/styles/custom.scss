@@ -166,3 +166,36 @@ blockquote {
 .card.no-thumb .card-body {
   padding-top: 0.95rem;
 }
+
+/* =======================================================================
+   图文混排工具类(raw HTML 使用;md 只给到块级图,这些补布局)
+   用法见 prosopon-source/CLAUDE.md「图文混排」
+   ======================================================================= */
+article figure { margin: 1.6rem 0; text-align: center; }
+article figcaption { font-size: 0.84em; color: var(--gray); margin-top: 0.45rem; line-height: 1.5; }
+
+/* 自适应画廊:任意张图自动铺成网格 */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem;
+  margin: 1.4rem 0;
+}
+.gallery img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; margin: 0; }
+
+/* 定列并排 */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 1.4rem 0; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin: 1.4rem 0; }
+.grid2 img, .grid3 img { width: 100%; margin: 0; border-radius: 6px; }
+
+/* 文字绕图(float) */
+.float-right, .float-left { max-width: 45%; margin: 0.2rem 0 0.8rem; border-radius: 6px; }
+.float-right { float: right; margin-left: 1rem; }
+.float-left { float: left; margin-right: 1rem; }
+.float-right + p, .float-left + p { margin-top: 0; }
+.clearfix::after { content: ""; display: block; clear: both; }
+
+@media (max-width: 700px) {
+  .grid2, .grid3 { grid-template-columns: 1fr; }
+  .float-right, .float-left { float: none; max-width: 100%; margin: 1rem 0; }
+}
