@@ -34,7 +34,7 @@
 - **rawMarkdown.ts**(emitter `RawMarkdown`)—— 每页输出 `<slug>.md` 原始 markdown(从 `file.data.filePath` 读盘)+ 全站聚合 `llms-full.txt`。给 AI/爬虫/读者喂原文(40-references)。
 - **telescopicText.ts**(transformer `TelescopicText`)+ **components/custom/TelescopicText.tsx** —— 把 ` ```telescopic ` 代码块(嵌套 bullet=展开层级)标记成 `code.telescopic-source`;组件脚本动态加载 `/static/telescopic/` 的 lib(全局声明,无 export),调 `createTelescopicTextFromBulletedList` 渲染成可点击逐层展开的文本。lib 复制在 `quartz/static/telescopic/`。
 - **components/custom/CollapsibleHeaders.tsx** —— Dynalist 风格可折叠标题:纯前端脚本(afterDOMLoaded)给正文每个 heading 注入 **`<button class="ch-toggle">`**(原生可聚焦/键盘 Enter·Space/`aria-expanded`,无障碍),点击折叠其下内容到下一个同级/更高级 heading 前,localStorage 按 slug+heading 记忆。
-  - frontmatter `collapseHeaders: false` → 本页关闭折叠;`collapseDefault: closed` → 本页默认折叠;标题末尾 `{-}` → 该标题不折叠。
+  - **默认展开**。标题末尾 `{+}` → 该节默认折叠;`{-}` → 该节不折叠(无 toggle);标记自动剥离不显示。frontmatter `collapseHeaders: false` → 整个关闭,`collapseDefault: closed` → 全页默认折叠。
   - 与 aarnphm 参考实现的差距:他服务端包 `<section>`(结构更语义),我们用客户端兄弟隐藏(更轻);无「加密内容/transclusion」等本仓不需要的扩展。
 - **frontmatterDate.ts**(transformer `FrontmatterDate`)—— 替掉内置 CreatedModifiedDate(tool_use §6)。只认 frontmatter `date`(或 created/modified/published),有则设 `file.data.dates`,无则 `delete dates`(留白,绝不伪造)。`defaultDateType: created`。
 

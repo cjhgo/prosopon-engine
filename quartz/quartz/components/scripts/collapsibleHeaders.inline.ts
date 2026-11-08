@@ -5,7 +5,8 @@
 //  - frontmatter `collapseDefault: closed` → 本页标题默认折叠
 //  - 标题文字末尾加 `{-}` → 该标题不折叠(且 `{-}` 不显示)
 
-const NO_FOLD_MARK = "{-}"
+const NO_FOLD_MARK = "{-}" // 该节不折叠(总是展开,无 toggle)
+const FOLD_MARK = "{+}" // 该节默认折叠(点开才展开)
 
 function headingLevel(el: Element): number {
   return parseInt(el.tagName[1], 10)
@@ -54,13 +55,14 @@ function setupCollapsibleHeaders() {
   const headings = article.querySelectorAll("h1, h2, h3, h4, h5, h6")
   headings.forEach((heading) => {
     if (heading.querySelector(".ch-toggle")) return // 已处理
-    // 逐节 opt-out:标题文字末尾 `{-}`
+    // 逐节标记:`{-}` 不折叠(去掉 toggle),`{+}` 默认折叠
     const text = heading.textContent ?? ""
     if (text.includes(NO_FOLD_MARK)) {
-      // 去掉标记(只在文本节点里,避免破坏内链;简单场景直接改 textContent)
       heading.textContent = text.replace(NO_FOLD_MARK, "").trim()
       return
     }
+    const foldByMark = text.includes(FOLD_MARK)
+    if (foldByMark) heading.textContent = text.replace(FOLD_MARK, "").trim()
     // 空标题(无内容可折叠)不加 toggle
     if (collectSection(heading).length === 0) return
 
@@ -91,13 +93,14 @@ function setupCollapsibleHeaders() {
       heading.removeEventListener("click", onHeadingClick)
     })
 
-    // 初始态:优先 localStorage,其次 frontmatter 默认
+    // 初始态:优先 localStorage,其次逐节 {+} 标记,其次页面默认
+    const initialCollapsed = foldByMark || defaultClosed
     try {
       const stored = localStorage.getItem(storeKey(heading))
-      const collapsed = stored === "1" || (stored === null && defaultClosed)
+      const collapsed = stored === "1" || (stored === null && initialCollapsed)
       if (collapsed) setCollapsed(heading, true, false)
     } catch {
-      if (defaultClosed) setCollapsed(heading, true, false)
+      if (initialCollapsed) setCollapsed(heading, true, false)
     }
   })
 }
