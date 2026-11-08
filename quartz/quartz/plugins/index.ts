@@ -47,6 +47,7 @@ export * from "./filters"
 export * from "./emitters"
 // 自定义(见 CUSTOMIZATIONS.md):
 export { FlattenLocalAssets, AssetManifest } from "./custom/flattenAssets"
+export { FrontmatterDate } from "./custom/frontmatterDate"
 
 declare module "vfile" {
   // inserted in processors.ts

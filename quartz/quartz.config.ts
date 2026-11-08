@@ -18,7 +18,7 @@ const config: QuartzConfig = {
     locale: "zh-CN",
     baseUrl: "quartz.junhangc.cn",
     ignorePatterns: ["private", "templates", ".obsidian"],
-    defaultDateType: "modified",
+    defaultDateType: "created",
     theme: {
       fontOrigin: "googleFonts",
       cdnCaching: true,
@@ -57,9 +57,8 @@ const config: QuartzConfig = {
   plugins: {
     transformers: [
       Plugin.FrontMatter(),
-      Plugin.CreatedModifiedDate({
-        priority: ["frontmatter", "git", "filesystem"],
-      }),
+      // 自定义:只认 frontmatter date(缺则不显示,绝不用 git/fs 伪造创作日期)
+      Plugin.FrontmatterDate(),
       Plugin.SyntaxHighlighting({
         theme: {
           light: "github-light",

@@ -16,6 +16,7 @@ interface Options {
   limit?: number
   types?: string[] // 仅显示这些 type
   exclude?: string[] // 排除这些 type
+  folder?: string // 仅显示 slug 顶层在此大类下的(如 "生活")
 }
 
 // 卡片网格分区:读 allFiles,按 type/date/cover 渲染。样式在 styles/custom.scss。
@@ -28,6 +29,7 @@ export default ((opts?: Options) => {
       const slug = p.slug ?? ""
       if (slug === "index" || slug.endsWith("/index")) return false
       if (slug.startsWith("tags/")) return false
+      if (opts?.folder && slug.split("/")[0] !== opts.folder) return false
       const t = ((p.frontmatter as Record<string, unknown>)?.type as string) ?? ""
       if (opts?.types && !opts.types.includes(t)) return false
       if (opts?.exclude && opts.exclude.includes(t)) return false

@@ -6,13 +6,17 @@ export const sharedPageComponents: SharedLayout = {
   head: Component.Head(),
   header: [],
   afterBody: [
-    // 首页底部:两段卡片 feed(cyhone 式)——随记(图卡)/ 文章(文字卡),仅 index 显示
+    // 首页底部:按大类 folder 分段卡片 feed,仅 index 显示(与 content/ 的 历史·生活·思考 对齐)
     Component.ConditionalRender({
-      component: Component.CardList({ title: "随记", types: ["note", "excerpt", "link"] }),
+      component: Component.CardList({ title: "历史", folder: "历史" }),
       condition: (page) => page.fileData.slug === "index",
     }),
     Component.ConditionalRender({
-      component: Component.CardList({ title: "文章", exclude: ["note", "excerpt", "link"] }),
+      component: Component.CardList({ title: "思考", folder: "思考" }),
+      condition: (page) => page.fileData.slug === "index",
+    }),
+    Component.ConditionalRender({
+      component: Component.CardList({ title: "生活", folder: "生活" }),
       condition: (page) => page.fileData.slug === "index",
     }),
   ],
