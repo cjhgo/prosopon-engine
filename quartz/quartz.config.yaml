@@ -1,0 +1,228 @@
+# yaml-language-server: $schema=./quartz/plugins/quartz-plugins.schema.json
+# prosopon-engine — Quartz 5 配置
+# 自有定制（transformer/emitter/组件）不在这里，见根目录 quartz.ts。
+configuration:
+  pageTitle: 生活工作读书新知
+  pageTitleSuffix: ""
+  enableSPA: true
+  enablePopovers: true
+  analytics:
+    provider: plausible
+  locale: zh-CN
+  baseUrl: prosopon.junhangc.cn
+  # 生产(deploy 设 QUARTZ_PROD=1)忽略 _refer；见 quartz.ts 的 override。
+  ignorePatterns:
+    - private
+    - templates
+    - .obsidian
+  theme:
+    fontOrigin: googleFonts
+    cdnCaching: true
+    typography:
+      header: Inter
+      body: Inter
+      code: JetBrains Mono
+    colors:
+      # 天青·文人盘：冷白微青底 + 黛青字 + 天青强调(汝窑向) + 克制暖赭点缀
+      lightMode:
+        light: "#f4f8f8"
+        lightgray: "#d7e3e3"
+        gray: "#8ea7a7"
+        darkgray: "#2e3f42"
+        dark: "#162528"
+        secondary: "#2f8296"
+        tertiary: "#bc7a3e"
+        highlight: "rgba(47, 130, 150, 0.09)"
+        textHighlight: "#b6dce088"
+      darkMode:
+        light: "#0d1517"
+        lightgray: "#213034"
+        gray: "#49605f"
+        darkgray: "#bccbcb"
+        dark: "#e5efef"
+        secondary: "#64b2c0"
+        tertiary: "#d59a5e"
+        highlight: "rgba(100, 178, 192, 0.12)"
+        textHighlight: "#345a5f88"
+  links:
+    markdownLinkResolution: shortest
+  contentIndex:
+    enableSiteMap: true
+    enableRSS: true
+  # 图 URL 已被 FlattenLocalAssets 改写成 /assets/<hash>；源图不再被引用，
+  # Assets 只复制被引用文件 → 不产僵尸副本（替代 v4 对 emitters/assets.ts 的 patch）。
+  publishAssets: referenced
+plugins:
+  # 日期只认 frontmatter.date；缺则留白。用自有 FrontmatterDate(quartz.ts)，
+  # 关掉官方的 git/fs 兜底，避免伪造创作日期。
+  - source: "@quartz-community/created-modified-date"
+    enabled: false
+  - source: "@quartz-community/syntax-highlighting"
+    enabled: true
+    options:
+      theme:
+        light: github-light
+        dark: github-dark
+      keepBackground: false
+    order: 20
+  - source: "@quartz-community/github-flavored-markdown"
+    enabled: true
+    order: 30
+  - source: "@quartz-community/obsidian-flavored-markdown"
+    enabled: true
+    options:
+      enableInHtmlEmbed: false
+      enableCheckbox: true
+    order: 40
+  - source: "@quartz-community/table-of-contents"
+    enabled: true
+    order: 50
+    layout:
+      position: right
+      priority: 30
+  - source: "@quartz-community/description"
+    enabled: true
+    order: 70
+  - source: "@quartz-community/latex"
+    enabled: true
+    options:
+      renderEngine: katex
+    order: 80
+  - source: "@quartz-community/citations"
+    enabled: false
+  - source: "@quartz-community/ox-hugo"
+    enabled: false
+  - source: "@quartz-community/roam"
+    enabled: false
+  - source: "@quartz-community/quartz-fonts"
+    enabled: true
+  - source: "@quartz-themes/core"
+    enabled: false
+  - source: "@quartz-community/explicit-publish"
+    enabled: false
+  - source: "@quartz-community/alias-redirects"
+    enabled: true
+  - source: "@quartz-community/favicon"
+    enabled: true
+  # 本地 fork（vendor/og-image）：官方插件 + Noto CJK fallback，修中文 NO GLYPH。
+  - source: "../vendor/og-image"
+    enabled: true
+  - source: "@quartz-community/cname"
+    enabled: false
+  - source: "@quartz-community/canvas-page"
+    enabled: false
+  - source: "@quartz-community/content-page"
+    enabled: true
+  - source: "@quartz-community/folder-page"
+    enabled: true
+  - source: "@quartz-community/tag-page"
+    enabled: true
+  - source: "@quartz-community/explorer"
+    enabled: true
+    layout:
+      position: left
+      priority: 50
+  - source: "@quartz-community/graph"
+    enabled: true
+    layout:
+      position: right
+      priority: 10
+  - source: "@quartz-community/search"
+    enabled: true
+    layout:
+      position: left
+      priority: 20
+      group: toolbar
+      groupOptions:
+        grow: true
+  - source: "@quartz-community/backlinks"
+    enabled: true
+    layout:
+      position: right
+      priority: 50
+  - source: "@quartz-community/article-title"
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 10
+  - source: "@quartz-community/content-meta"
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 20
+  - source: "@quartz-community/tag-list"
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 30
+  - source: "@quartz-community/page-title"
+    enabled: true
+    layout:
+      position: left
+      priority: 10
+  - source: "@quartz-community/darkmode"
+    enabled: true
+    layout:
+      position: left
+      priority: 30
+      group: toolbar
+  - source: "@quartz-community/reader-mode"
+    enabled: true
+    layout:
+      position: left
+      priority: 35
+      group: toolbar
+  - source: "@quartz-community/breadcrumbs"
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 5
+      condition: not-index
+  - source: "@quartz-community/comments"
+    enabled: false
+  - source: "@quartz-community/footer"
+    enabled: false
+  - source: "@quartz-community/recent-notes"
+    enabled: false
+  - source: "@quartz-community/spacer"
+    enabled: true
+    order: 25
+    layout:
+      position: left
+      priority: 25
+      display: mobile-only
+  - source: "@quartz-community/bases-page"
+    enabled: true
+    order: 50
+  - source: "@quartz-community/note-properties"
+    enabled: false
+  - source: "@quartz-community/unlisted-pages"
+    enabled: false
+  - source: "@quartz-community/encrypted-pages"
+    enabled: false
+  - source: "@quartz-community/stacked-pages"
+    enabled: false
+layout:
+  groups:
+    toolbar:
+      priority: 35
+      direction: row
+      gap: 0.5rem
+  byPageType:
+    "404":
+      positions:
+        beforeBody: []
+        left: []
+        right: []
+    content: {}
+    folder:
+      exclude:
+        - reader-mode
+      positions:
+        right: []
+    tag:
+      exclude:
+        - reader-mode
+      positions:
+        right: []
+    bases: {}

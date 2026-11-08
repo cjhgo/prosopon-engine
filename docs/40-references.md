@@ -55,7 +55,7 @@
 
 
 
-aarnphm = "忒修斯之船"级重 fork(Quartz v4.6.0 + Cloudflare Workers),偏**功能炫技**,多依赖 Obsidian 生态 + 客户端 ML,工程密度不如 turntrout 可直接抄。
+aarnphm = "忒修斯之船"级重 fork(Quartz v5 + Cloudflare Workers),偏**功能炫技**,多依赖 Obsidian 生态 + 客户端 ML,工程密度不如 turntrout 可直接抄。
 
 **内容处理 transformer / parser**
 

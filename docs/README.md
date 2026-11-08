@@ -10,6 +10,7 @@
 | [20-design.md](20-design.md) | design | **人** | owned 命名空间纪律 + 自定义件清单(实体→职责→治哪个leaky)+ 对 upstream 的一处侵入 |
 | [30-runbook.md](30-runbook.md) | 运维台账 | — | 构建/预览/三仓关系/数据落点/部署/升级 upstream |
 | [40-references.md](40-references.md) | backlog | 人 | 可借鉴的 Quartz 定制(turntrout/aarnphm 提炼,按中文花园性价比筛)——**将来可挑,非现状** |
+| [50-v5-migration.md](50-v5-migration.md) | 迁移记录 | 人 | v4.5.2 → v5.0.0(拿 Bases)。路径裁决 / 逐件映射 / runbook / 风险 / **落地结果**。`v5` 分支已冒烟 |
 
 ## 上游指针(本仓之外)
 

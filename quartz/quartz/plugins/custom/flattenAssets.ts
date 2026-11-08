@@ -35,9 +35,6 @@ export interface AssetEntry {
 }
 const REGISTRY = new Map<string, AssetEntry>()
 
-// 已被扁平化接管的源文件绝对路径集合;Assets emitter 据此跳过,避免僵尸副本。
-export const MANAGED_SRCS = new Set<string>()
-
 function hashFile(absSrc: string): { hash: string; size: number } | null {
   try {
     const buf = fs.readFileSync(absSrc)
@@ -54,9 +51,7 @@ export const FlattenLocalAssets: QuartzTransformerPlugin = () => ({
     return [
       () => (tree, file) => {
         // 当前 md 的物理绝对目录(用于解析相对图)
-        const mdFull = file.data.filePath
-          ? (path.resolve(file.data.filePath) as string)
-          : undefined
+        const mdFull = file.data.filePath ? (path.resolve(file.data.filePath) as string) : undefined
         const mdDir = mdFull ? path.dirname(mdFull) : undefined
         const slug = (file.data.slug as string) ?? ""
         if (!mdDir) return
@@ -75,7 +70,6 @@ export const FlattenLocalAssets: QuartzTransformerPlugin = () => ({
             REGISTRY.set(h.hash, entry)
           }
           entry.refs.add(slug)
-          MANAGED_SRCS.add(absSrc)
           return `${ASSET_BASE}/assets/${h.hash}${ext}`
         }
 
@@ -94,7 +88,6 @@ export const FlattenLocalAssets: QuartzTransformerPlugin = () => ({
               REGISTRY.set(h.hash, e)
             }
             e.refs.add(slug)
-            MANAGED_SRCS.add(absCover)
             fm.cover = `${ASSET_BASE}/assets/${h.hash}${ext}` // 扁平、站点绝对
           }
         }

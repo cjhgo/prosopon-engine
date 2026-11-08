@@ -1,6 +1,6 @@
 import { QuartzEmitterPlugin } from "../types"
 import { write } from "../emitters/helpers"
-import { FullSlug, joinSegments } from "../../util/path"
+import { FullSlug } from "../../util/path"
 import fs from "fs"
 import path from "path"
 

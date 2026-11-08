@@ -9,6 +9,17 @@ opencli/pi 等全局 CLI、node 走 nvm(非 brew node),PATH:
 export PATH="$HOME/.nvm/versions/node/v24.22.2/bin:$PATH"
 ```
 
+首次/依赖变化后装 v5 依赖（官方插件已作为 npm 依赖，无需 `plugin install`）:
+```
+cd quartz && npm install
+```
+
+`vendor/og-image`（本地 fork）的 `dist/` 已提交，正常构建不需要动；只在改它的 `src/` 后重建：
+```
+cd vendor/og-image && npm install && npm run build
+```
+
+
 构建 + 热重载预览(内容来自 sibling 仓):
 ```
 cd quartz
@@ -24,7 +35,7 @@ npx quartz build -d ../../prosopon-source/content           # 一次性构建到
 oikos/prosopon/        meta 决策(hypertext-数字花园.md 等)+ aliyun-ops 云运维
 prosopon-source/       内容本体(md+图),被下面构建        git@github.com:cjhgo/prosopon-source.git
 prosopon-engine/       本仓,代码载体                       git@github.com:cjhgo/prosopon-engine.git
-  quartz/              Quartz v4 fork(在此 build)
+  quartz/              Quartz v5 fork(在此 build)
   skills/              xhs-publish(待)、alt-text(pi-alt 脚本就绪)
 ```
 本地布局三仓平级于 `~/workspace/`,`quartz build -d ../../prosopon-source/content` 依赖此相对关系(不用 submodule)。
@@ -51,9 +62,12 @@ bin/vps deploy-dir <engine>/quartz/public --domain <子域名>   # 分块传 + n
 - pi-alt 走本地 pi(modelbest 网关,token 在环境变量/`~/.pi/agent/`,见 skills/alt-text/pi-alt-draft.sh 头部纪要)。
 - 云运维凭证在 aliyun-ops(本 repo 外)。
 
-## 升级 upstream Quartz
+## 升级 upstream Quartz（v5）
 
-1. 取新版 jackyzha0/quartz 到临时目录。
-2. 覆盖 `quartz/` 下除 owned 命名空间外的文件(custom/、custom.scss 不动)。
-3. 手动 3-way merge:`quartz.config.ts`、`quartz.layout.ts`、`components/index.ts`、`plugins/index.ts`、`emitters/assets.ts`(只我们那几行,见 20-design)。
-4. `npm install` + 冒烟构建。
+> 对 upstream 的补丁 = 0（见 20-design）。升级只替换核心，不动 owned 命名空间。
+
+1. 取新版 `jackyzha0/quartz` 的 `v5` 分支到临时目录。
+2. 备份 owned：`quartz/quartz.ts`、`quartz/quartz.config.yaml`、`quartz/quartz/{components,plugins}/custom/`、`quartz/quartz/styles/custom.scss`、`quartz/quartz/static/`。
+3. 用新版替换 `quartz/`（package root），再放回 owned。
+4. `npm install` + 冒烟构建（见 `50-v5-migration.md` §八 的验证清单）。
+5. 若 v5 上游改了 `loadQuartzConfig/loadQuartzLayout` 的签名，只需改 `quartz.ts` 一个文件。

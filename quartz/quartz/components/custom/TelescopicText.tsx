@@ -1,4 +1,5 @@
 import { QuartzComponentConstructor, QuartzComponentProps } from "../types"
+// @ts-ignore — .inline.ts 由构建期 text loader 处理，不是普通 TS 模块
 import script from "../scripts/telescopic.inline"
 import { classNames } from "../../util/lang"
 

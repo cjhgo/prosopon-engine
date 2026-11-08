@@ -5,7 +5,7 @@
 ## 它是什么
 
 prosopon-engine = junhang 数字花园「生活工作读书新知」的**定制代码 monorepo**:
-一个 vendored 的 Quartz v4 fork(`quartz/`,upstream jackyzha0/quartz @ `d25a6ea`)+ 发布/工具 skill(`skills/`)。
+一个 vendored 的 **Quartz v5.0.0** fork(`quartz/`,upstream jackyzha0/quartz `v5` 分支)+ 发布/工具 skill(`skills/`)。选择 v5 的直接收益是官方 **Obsidian Bases**（数据库视图）与插件生态；迁移记录见 [50-v5-migration.md](50-v5-migration.md)。
 内容不在这里——在 sibling 仓 **prosopon-source**(md + 随文图)。本仓是**可换的载体**,内容是本体。
 
 ## 为什么是 Quartz,不是别的

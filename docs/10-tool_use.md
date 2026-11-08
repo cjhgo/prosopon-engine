@@ -3,6 +3,16 @@
 > agentswe 四层之 **tool_use**(外部事实)。不是 Quartz API 手册,是「不懂它 design 就会建错、用法就会派错」的 leaky 认知。
 > 关键处标 `[leaky]`。端点/字段名留给 Quartz 官方文档(本机 `quartz/docs/`)。
 
+## 0. v5 增量（迁移后必读）
+
+- **配置分层**：`quartz.config.yaml`（官方插件/主题/`configuration`）+ `quartz.ts`（TS override）。`loadQuartzConfig()` 返回普通对象；自有 transformer/emitter **push 进去**即可，`build.ts` 直接遍历 `cfg.plugins.*`。
+- **布局**：`loadQuartzLayout(overrides)`，`defaults` 是**浅合并**（只覆盖要动的 slot）；布局组件是有 `css` / `afterDOMLoaded` 属性的函数，registry 按 constructor+options 缓存实例。
+- **官方插件 = npm 依赖**：`npm install` 已带全部 `@quartz-community/*`；只有 git 源插件才需要 `npx quartz plugin install`。
+- **`publishAssets: "referenced"`**：Assets 只复制被页面引用的源资产。我们的 transformer 已把图改写成 `/assets/<hash>`，源图不再被引 → 自动不产僵尸副本，**不需要改 upstream assets.ts**。
+- **`additionalHead`**：插件 `externalResources()` 可按页注入 `<head>` 元素（函数收到当前页 `QuartzPluginData`），用来做 `rel=alternate` 等。
+- **URL 小写化**：v5 统一小写 + 连字符；中文不受影响，英文文件名会变（AliasRedirects 默认兜底）。
+- **Page types**：content / folder / tag / 404 / canvas / bases 分派；`bases-page` 把 `.base` 渲染为 table/list/cards/gallery/board。
+
 ## 1. Quartz 的构建模型:transformer(map)→ filter → emitter(reduce)
 
 - **transformer** 逐文件处理(map)。两类 hook 关键:`textTransform(src)` 改原始文本;`markdownPlugins()` 返回 remark 插件、拿得到 `file.data`(含 `filePath`/`slug`/`frontmatter`),在 mdast 上 `visit` 节点。
