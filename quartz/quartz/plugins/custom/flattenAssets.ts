@@ -35,6 +35,24 @@ export interface AssetEntry {
 }
 const REGISTRY = new Map<string, AssetEntry>()
 
+// Quartz v5 在文件多时把解析分到 worker 线程(argv.concurrency > 1), 模块内存里的
+// REGISTRY 不跨线程共享 —— emitter 在主线程会读到空表, 导致 public/assets 不发文件、
+// manifest 为空(351 个 md 实测)。故每条登记同时落盘, emitter 从磁盘聚合。
+const REGISTRY_DIR = path.join(process.cwd(), ".quartz-cache", "asset-registry")
+
+function recordAsset(hash: string, absSrc: string, ext: string, size: number, slug: string) {
+  try {
+    fs.mkdirSync(REGISTRY_DIR, { recursive: true })
+    const slugKey = crypto.createHash("sha1").update(slug).digest("hex").slice(0, 12)
+    fs.writeFileSync(
+      path.join(REGISTRY_DIR, `${hash}__${slugKey}.json`),
+      JSON.stringify({ hash, absSrc, ext, size, slug }),
+    )
+  } catch {
+    // 落盘失败(只读 FS 等)不影响单线程构建: 内存 REGISTRY 仍可用
+  }
+}
+
 function hashFile(absSrc: string): { hash: string; size: number } | null {
   try {
     const buf = fs.readFileSync(absSrc)
@@ -70,6 +88,7 @@ export const FlattenLocalAssets: QuartzTransformerPlugin = () => ({
             REGISTRY.set(h.hash, entry)
           }
           entry.refs.add(slug)
+          recordAsset(h.hash, absSrc, ext, h.size, slug)
           return `${ASSET_BASE}/assets/${h.hash}${ext}`
         }
 
@@ -89,6 +108,7 @@ export const FlattenLocalAssets: QuartzTransformerPlugin = () => ({
               REGISTRY.set(h.hash, e)
             }
             e.refs.add(slug)
+            recordAsset(h.hash, absCover, ext, h.size, slug)
             fm.cover = `${ASSET_BASE}/assets/${h.hash}${ext}` // 扁平、站点绝对
             // frontmatter 归一化会把 cover 同时写成 socialImage;社交图必须跟着换,
             // 否则 Head 会拼出 /static/<原始 cover> 的 404 URL。
@@ -120,6 +140,27 @@ export const AssetManifest: QuartzEmitterPlugin = () => ({
   name: "AssetManifest",
   async *emit({ argv }) {
     const manifest: Record<string, unknown> = {}
+    // 跨 worker 线程: 从磁盘聚合 transformer 登记的条目(见 recordAsset)
+    try {
+      const slots = await fs.promises.readdir(REGISTRY_DIR)
+      for (const f of slots) {
+        if (!f.endsWith(".json")) continue
+        try {
+          const row = JSON.parse(await fs.promises.readFile(path.join(REGISTRY_DIR, f), "utf8"))
+          if (!row?.hash || !row?.absSrc) continue
+          let e = REGISTRY.get(row.hash)
+          if (!e) {
+            e = { absSrc: row.absSrc, ext: row.ext ?? "", refs: new Set(), size: row.size ?? 0 }
+            REGISTRY.set(row.hash, e)
+          }
+          if (row.slug) e.refs.add(row.slug)
+        } catch {
+          continue
+        }
+      }
+    } catch {
+      // 无 registry 目录 = 单线程构建, 内存 REGISTRY 已足够
+    }
     // 生产环境图走 OSS:把 assets 落进持久 cache(只拷新 hash),deploy 增量同步 cache。
     // 本地预览仍落 public/assets,由 dev server 直接服务。
     const prod = ASSET_BASE !== ""
