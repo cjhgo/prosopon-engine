@@ -202,24 +202,3 @@ article figcaption { font-size: 0.84em; color: var(--gray); margin-top: 0.45rem;
 body[data-slug^="mouseion"][data-slug$="/index"] .page-listing {
   display: none;
 }
-
-/* mouseion 网易云播放器(正文 <details class="player">) */
-details.player {
-  margin: 1.2rem 0;
-  border: 1px solid var(--lightgray);
-  border-radius: 8px;
-  padding: 0.4rem 0.8rem;
-}
-details.player summary {
-  cursor: pointer;
-  padding: 0.35rem 0;
-  color: var(--secondary);
-  user-select: none;
-}
-details.player iframe {
-  display: block;
-  width: 100%;
-  border: 0;
-  border-radius: 6px;
-  margin: 0.4rem 0 0.6rem;
-}
