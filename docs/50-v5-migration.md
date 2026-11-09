@@ -1,6 +1,7 @@
 # v5 迁移 — 从 Quartz 4.5.2 到 Quartz 5.0.0（已落地 `v5` 分支）
 
 > **状态：已冒烟验证（2026-11-09，`v5` 分支）。** 路径 B（fork 内注入）按方案落地；核心定制、生产裁剪、Bases 全部真机构建通过。
+> **后续演进（2026-11-09 之后）**：OG 改持久缓存并跳过虚拟页/mouseion；assets 生产改 `.quartz-cache/assets` + OSS 增量；`socialImage` 跟随 cover 扁平化；新增 `mouseion` custom Bases view、`MouseionFeed` 与独立子域站 `mouseion.junhangc.cn`。本文 §八的「每页 OG」是迁移时快照；当前行为以 [20-design](20-design.md) / [30-runbook](30-runbook.md) 为准。
 > 目的：拿到 **Obsidian Bases**（`cinematheque` / `antilibrary` 那类数据库视图）与 v5 插件生态，同时不丢本仓的定制。
 > 上游事实：`jackyzha0/quartz` 已有 `v5` 分支与 `v5.0.0` tag；官方迁移指南 `docs/getting-started/migrating`；Bases 由 `@quartz-community/bases-page` 提供（MIT，v5 依赖里已自带）。
 

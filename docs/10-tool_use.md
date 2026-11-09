@@ -72,9 +72,12 @@ Quartz 内置 `Assets` emitter **按源目录结构**拷图 → 上线 URL = `/�
 - **satori 不像浏览器会自动 fallback 到系统 CJK 字体** → 中文全渲染成 `NO GLYPH` 黑块(英文/数字正常)。浏览器里中文正常是因浏览器有系统 fallback,og 离线生成没有。
 - **解**:satori 支持**多字体 fallback**(按字形在数组里逐个找)。在拉丁字体后**追加一个中文字体**(Noto Sans CJK SC),拉丁走 Inter、中文走 Noto。
 - `[leaky]` **satori 吃 ttf/otf/woff,不吃 woff2**(现代 CJK 子集字体多只发 woff2,取不到)→ 用完整 OTF(16MB),首次 build 下载缓存 `.quartz-cache/fonts`。
-- 实现落点:改 `util/og.tsx` 的 `getSatoriFonts`(字体集中加载处,一改全覆盖),见 20-design。
+- 实现落点(v5):`vendor/og-image/` 本地 fork（`getSatoriFonts` 追加 CJK，`dist/` 已提交）；不再 patch `util/og.tsx`。
+- `[leaky]` OG 是逐页 satori/sharp 生成，内容页多了会很贵。本仓 fork 加 `.quartz-cache/og` 持久缓存（page/title/description/theme 变了才重画）；虚拟 tag/folder 页和 `mouseion/` 不生成（Head 不引用它们的生成图），内容页的 `socialImage` 直接复用封面。
 
 ## 10. 部署:图走 OSS / HTML 走 ECS 的 ASSET_BASE 切换
 
 - `flattenAssets` 读环境变量 `ASSET_BASE_URL`:**生产**(deploy)设 `https://assets.junhangc.cn` → HTML 里图 URL 指 OSS;**预览**(serve)留空 → `/assets/<hash>` 由本地 Quartz 服务。同一份源,两种产出。
+- **资产缓存**：生产把扁平图落到 `.quartz-cache/assets`（内容 hash 持久缓存，只拷新 hash）；deploy 用 `oss sync --ignore-existing` 只传新对象。预览仍落 `public/assets`。
+- **MOUSEION 子域**：主站 build 额外产 `static/mouseion.json`；`mouseion-site/build.py` 读它生成独立全屏站，`deploy.sh` 部署到 `mouseion.junhangc.cn`。条目 links 回主站 `/mouseion/<slug>`。
 - 为什么:ECS 云助手上传是分块(慢),图(大头)挪 OSS、HTML(小)留 ECS。部署管线见 aliyun-ops/references/deploy-ctx.md(含 OSS 中转 tar 治分块往返)。

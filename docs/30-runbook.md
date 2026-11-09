@@ -26,7 +26,7 @@ cd quartz
 npx quartz build -d ../../prosopon-source/content --serve   # localhost:8080,改 .ts/.scss 自动重建
 npx quartz build -d ../../prosopon-source/content           # 一次性构建到 public/
 ```
-- 改 config/组件/插件后 serve 会重建;偶发缓存不一致时 `rm -rf public .quartz-cache` 再 build。
+- 改 config/组件/插件后 serve 会重建。`.quartz-cache` 是**有意保留的持久缓存**（OG/字体/扁平图），不要每次删；只有需要冷重建/清污染时才 `rm -rf public .quartz-cache`。
 - 验证用 opencli 开 localhost 看;**注意**:screenshot 可能截在 lazy-load 之前,判断图是否加载以 `img.naturalWidth>0` 为准,别只信截图。
 
 ## 仓库关系(三仓)
@@ -42,19 +42,30 @@ prosopon-engine/       本仓,代码载体                       git@github.com:
 
 ## 产出与数据落点
 
-- `quartz/public/` — 构建产物(gitignore)。`public/assets/<hash>.ext` 扁平图;`public/static/assets-manifest.json` 图片台账。
+- `quartz/public/` — 构建产物(gitignore)。预览时 `public/assets/<hash>.ext` 是本地扁平图；生产构建把 assets 放进 `.quartz-cache/assets`，`public/assets` 不再落盘。
+- `quartz/public/static/assets-manifest.json` — 图片台账。
 - `quartz/node_modules/` — gitignore。
-- `.quartz-cache/` — 构建缓存,可删。
+- `.quartz-cache/` — **持久构建缓存**：`assets/`（内容 hash 扁平图，生产源）、`og/`（OG webp）、`fonts/`（CJK OTF）、`mouseion-dist/`（子域站产物）。默认保留以保持 warm build / 增量 OSS。
 
 ## 部署(prosopon-source 内容 → 公网)
 
-部署经 oikos 的 **aliyun-ops** tool_use(`oikos/prosopon/skills/aliyun-ops/`):
+部署经 `prosopon-source/scripts/deploy.sh`（内部用 oikos 的 aliyun-ops）：
+```
+cd prosopon-source && scripts/deploy.sh
+# 1) Quartz build + static/mouseion.json
+# 2) .quartz-cache/assets → OSS (ossutil --ignore-existing，只传新 hash)
+# 3) mouseion-site/build.py → vps deploy-dir mouseion.junhangc.cn + use-cert
+# 4) public/ → vps deploy-dir prosopon.junhangc.cn
+```
+也可单独手动：
 ```
 # 在 oikos/prosopon/skills/aliyun-ops 下
-bin/vps deploy-dir <engine>/quartz/public --domain <子域名>   # 分块传 + nginx vhost(cert-aware)
+bin/vps deploy-dir <engine>/quartz/public --domain prosopon.junhangc.cn
+bin/vps deploy-dir <engine>/.quartz-cache/mouseion-dist --domain mouseion.junhangc.cn
+bin/vps use-cert --domain mouseion.junhangc.cn   # 幂等：证书未变会 skip
 ```
 - 源站:阿里云北京 ECS + nginx,已备案域名,泛域名 HTTPS。
-- 部署即构建产物整目录上传;备案号已由 SiteFooter 注入页面(deploy 层也有兜底)。
+- 备案号由 SiteFooter / MOUSEION footer 悬挂；deploy 层也有兜底。
 
 ## secrets / 凭证
 
