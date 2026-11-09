@@ -23,19 +23,22 @@
 | 文件 | 做了什么 | 详见 |
 |---|---|---|
 | `quartz.config.yaml` | 天青盘(light+dark)、Inter/CJK、zh-CN、`markdownLinkResolution: shortest`、`publishAssets: referenced`、官方插件集(含 `bases-page`) | docs/20 |
-| `quartz.ts` | `loadQuartzConfig({ignorePatterns})` + push `FrontmatterDate/MarkdownAlternate/TelescopicText/FlattenLocalAssets` + `AssetManifest/RawMarkdown`；`loadQuartzLayout` 追加 `HomeSections/CollapsibleHeaders/TelescopicTextUI/SiteFooter` + content 页 `MarkdownSourceLink` | docs/20, docs/50 |
+| `quartz.ts` | `viewRegistry.register({id:"mouseion"})`；`loadQuartzConfig({ignorePatterns})` + push `FrontmatterDate/MarkdownAlternate/TelescopicText/FlattenLocalAssets` + `AssetManifest/RawMarkdown`；`loadQuartzLayout` 追加 `HomeSections/CollapsibleHeaders/TelescopicTextUI/SiteFooter` + content 页 `MarkdownSourceLink` | docs/20, docs/50 |
 | `components/custom/HomeSections.tsx` | 首页按 folder 分段卡片（仅 index），v4 的 5 个 CardList 合并 | docs/20 |
 | `components/custom/SiteFooter.tsx` | 页脚去推广 + 备案号 | docs/20 |
 | `components/custom/MarkdownSourceLink.tsx` | 「Markdown 源码 ↗」入口（content 页） | docs/20 |
 | `components/custom/CollapsibleHeaders.tsx` | Dynalist 可折叠标题（`{+}`/`{-}` 标记） | docs/20 |
 | `components/custom/TelescopicText.tsx` + `static/telescopic/` | telescopic 可展开文本 | docs/20 |
-| `plugins/custom/flattenAssets.ts` | 图片 → `/assets/<hash>` 扁平化 + `assets-manifest.json` | docs/10 §4-5, docs/20 |
+| `components/custom/MouseionView.tsx` + `mouseionStyles.ts` | **MOUSEION 综合页自定义 Bases 视图**：书境书架 / 影境胶片夹 / 音境密铺封面墙(名字/歌手优先)；在 `quartz.ts` 里 `viewRegistry.register({id:"mouseion"})` | 内容页 `content/mouseion/` |
+| `plugins/custom/flattenAssets.ts` | 图片 → `/assets/<hash>` 扁平化 + `assets-manifest.json`；生产落 `.quartz-cache/assets`（只拷新 hash，deploy 增量同步） | docs/10 §4-5, docs/20 |
 | `plugins/custom/frontmatterDate.ts` | 只认 frontmatter date，缺则留白 | docs/10 §6 |
 | `plugins/custom/rawMarkdown.ts` | 每页 `<slug>.md` + `llms.txt` / `llms-full.txt` | docs/20 |
+| `plugins/custom/mouseionFeed.ts` | 书影音 → `static/mouseion.json`（独立子域站的数据投影；主站仍是 SoT） | — |
+| `mouseion-site/`（engine 根） | **MOUSEION 独立全屏站**：`build.py` 读 feed 生成暗色三境画廊；`deploy.sh` 部署到 `mouseion.junhangc.cn` | — |
 | `plugins/custom/telescopicText.ts` | ```telescopic 代码块 → 客户端渲染源 | docs/20 |
 | `plugins/custom/headAlternate.ts` | `<link rel=alternate type=text/markdown>`（v5 `additionalHead`） | docs/20 |
 | `quartz/styles/custom.scss` | 卡片/分区/页脚/CJK 回退 + `text-wrap: pretty` | docs/20 |
-| `vendor/og-image/` | 官方 og-image 的本地 fork：Noto Sans CJK SC fallback（修中文 OG 豆腐块）+ 中文「分钟阅读」 | docs/50 §八 |
+| `vendor/og-image/` | 官方 og-image 的本地 fork：Noto Sans CJK SC fallback（修中文 OG 豆腐块）+ 中文「分钟阅读」+ `.quartz-cache/og` 持久缓存（warm build 不再重画） | docs/50 §八 |
 | `skills/{xhs-publish,alt-text}/` | 发布 skill 占位 + pi-alt 脚本 | — |
 
 ## v5 迁移的注意项（非阻塞）

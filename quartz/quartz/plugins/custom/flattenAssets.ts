@@ -81,6 +81,7 @@ export const FlattenLocalAssets: QuartzTransformerPlugin = () => ({
           const absCover = path.resolve(contentRoot, decodeURIComponent(fm.cover))
           const h = hashFile(absCover)
           if (h) {
+            const originalCover = fm.cover
             const ext = path.extname(absCover).toLowerCase()
             let e = REGISTRY.get(h.hash)
             if (!e) {
@@ -89,6 +90,9 @@ export const FlattenLocalAssets: QuartzTransformerPlugin = () => ({
             }
             e.refs.add(slug)
             fm.cover = `${ASSET_BASE}/assets/${h.hash}${ext}` // 扁平、站点绝对
+            // frontmatter 归一化会把 cover 同时写成 socialImage;社交图必须跟着换,
+            // 否则 Head 会拼出 /static/<原始 cover> 的 404 URL。
+            if (fm.socialImage === originalCover) fm.socialImage = fm.cover
           }
         }
 
@@ -116,12 +120,24 @@ export const AssetManifest: QuartzEmitterPlugin = () => ({
   name: "AssetManifest",
   async *emit({ argv }) {
     const manifest: Record<string, unknown> = {}
+    // 生产环境图走 OSS:把 assets 落进持久 cache(只拷新 hash),deploy 增量同步 cache。
+    // 本地预览仍落 public/assets,由 dev server 直接服务。
+    const prod = ASSET_BASE !== ""
+    const cacheDir = path.join(process.cwd(), ".quartz-cache", "assets")
     for (const [hash, e] of REGISTRY) {
       const destRel = `assets/${hash}${e.ext}` as FilePath
-      const dest = joinSegments(argv.output, destRel) as FilePath
+      const dest = (prod ? path.join(cacheDir, `${hash}${e.ext}`) : joinSegments(argv.output, destRel)) as FilePath
       await fs.promises.mkdir(path.dirname(dest), { recursive: true })
       try {
-        await fs.promises.copyFile(e.absSrc, dest)
+        if (prod) {
+          try {
+            await fs.promises.access(dest)
+          } catch {
+            await fs.promises.copyFile(e.absSrc, dest)
+          }
+        } else {
+          await fs.promises.copyFile(e.absSrc, dest)
+        }
       } catch {
         continue
       }

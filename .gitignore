@@ -3,3 +3,6 @@ quartz/public/
 quartz/.quartz-cache/
 **/.DS_Store
 vendor/og-image/node_modules/
+
+.quartz-cache/
+mouseion-site/dist/

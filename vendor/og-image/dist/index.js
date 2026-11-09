@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { styleText } from 'util';
 import sharp from 'sharp';
+import crypto from 'crypto';
 
 const require$1 = createRequire(import.meta.url);
 var __create = Object.create;
@@ -24401,6 +24402,7 @@ function resolveDescription(fileData, opts) {
   const generated = opts.useGeneratedDescription === false ? void 0 : fileData.description;
   return unescapeHTML(generated?.trim() || opts.defaultDescription || "");
 }
+var OG_CACHE_VERSION = 1;
 async function processOgImage(ctx, fileData, fonts, fullOptions) {
   const cfg = ctx.cfg.configuration;
   const slug2 = fileData.slug;
@@ -24408,6 +24410,31 @@ async function processOgImage(ctx, fileData, fonts, fullOptions) {
   const frontmatter = fileData.frontmatter;
   const title = (frontmatter?.title ?? fullOptions.defaultTitle ?? "") + titleSuffix;
   const description = resolveDescription(fileData, fullOptions);
+  const cacheDir = path.join(process.cwd(), ".quartz-cache", "og");
+  const cacheKey = crypto.createHash("sha256").update(JSON.stringify({
+    v: OG_CACHE_VERSION,
+    slug: slug2,
+    title,
+    description,
+    frontmatter,
+    dates: fileData.dates,
+    theme: cfg.theme,
+    locale: cfg.locale,
+    width: fullOptions.width,
+    height: fullOptions.height,
+    colorScheme: fullOptions.colorScheme
+  })).digest("hex").slice(0, 16);
+  const cachePath = path.join(cacheDir, `${cacheKey}.webp`);
+  try {
+    const cached = await fs.readFile(cachePath);
+    return write({
+      ctx,
+      content: cached,
+      slug: `${slug2}-og-image`,
+      ext: ".webp"
+    });
+  } catch {
+  }
   const stream = await generateSocialImage(
     {
       title,
@@ -24418,9 +24445,15 @@ async function processOgImage(ctx, fileData, fonts, fullOptions) {
     },
     fullOptions
   );
+  const buf = await stream.toBuffer();
+  try {
+    await fs.mkdir(cacheDir, { recursive: true });
+    await fs.writeFile(cachePath, buf);
+  } catch {
+  }
   return write({
     ctx,
-    content: stream,
+    content: buf,
     slug: `${slug2}-og-image`,
     ext: ".webp"
   });
@@ -24453,6 +24486,10 @@ Warning: Skipping OG image generation \u2014 no fonts available (Google Fonts un
       }
       for (const [_tree, vfile] of content) {
         const data = vfile.data;
+        // 虚拟页(tag/folder)的 OG 不会被 Head 引用:Head 用默认图,
+        // 生成它们纯属浪费(satori/sharp 每张都要跑)。
+        if (!data.filePath) continue;
+        if (data.slug?.startsWith("mouseion/")) continue;
         if (data.frontmatter?.socialImage !== void 0) continue;
         yield processOgImage(ctx, data, fonts, fullOptions);
       }
@@ -24469,6 +24506,8 @@ Warning: Skipping OG image generation \u2014 no fonts available (Google Fonts un
       for (const changeEvent of changeEvents) {
         if (!changeEvent.file) continue;
         const data = changeEvent.file.data;
+        if (!data.filePath) continue;
+        if (data.slug?.startsWith("mouseion/")) continue;
         if (data.frontmatter?.socialImage !== void 0) continue;
         if (changeEvent.type === "add" || changeEvent.type === "change") {
           yield processOgImage(ctx, data, fonts, fullOptions);

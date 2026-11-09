@@ -197,3 +197,8 @@ article figcaption { font-size: 0.84em; color: var(--gray); margin-top: 0.45rem;
   .grid2, .grid3 { grid-template-columns: 1fr; }
   .float-right, .float-left { float: none; max-width: 100%; margin: 1rem 0; }
 }
+
+/* 书影音 index 页:base 视图已经承载列表,隐藏 folder 页自动追加的 PageList */
+body[data-slug^="mouseion"][data-slug$="/index"] .page-listing {
+  display: none;
+}

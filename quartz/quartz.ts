@@ -4,9 +4,13 @@ import { AssetManifest, FlattenLocalAssets } from "./quartz/plugins/custom/flatt
 import { FrontmatterDate } from "./quartz/plugins/custom/frontmatterDate"
 import { MarkdownAlternate } from "./quartz/plugins/custom/headAlternate"
 import { RawMarkdown } from "./quartz/plugins/custom/rawMarkdown"
+import { MouseionFeed } from "./quartz/plugins/custom/mouseionFeed"
 import { TelescopicText } from "./quartz/plugins/custom/telescopicText"
 
 import CollapsibleHeaders from "./quartz/components/custom/CollapsibleHeaders"
+import MouseionView from "./quartz/components/custom/MouseionView"
+import { mouseionStyles } from "./quartz/components/custom/mouseionStyles"
+import { viewRegistry } from "@quartz-community/bases-page"
 import HomeSections from "./quartz/components/custom/HomeSections"
 import MarkdownSourceLink from "./quartz/components/custom/MarkdownSourceLink"
 import SiteFooter from "./quartz/components/custom/SiteFooter"
@@ -20,6 +24,15 @@ import TelescopicTextUI from "./quartz/components/custom/TelescopicText"
  * 再把自有组件 append 进布局。这样不侵入任何 upstream 文件。
  * 详见 docs/50-v5-migration.md。
  */
+// Register the MOUSEION custom Bases view before the page dispatcher renders.
+viewRegistry.register({
+  id: "mouseion",
+  name: "Mouseion",
+  icon: "library",
+  render: MouseionView,
+  css: mouseionStyles,
+})
+
 const config = await loadQuartzConfig({
   // 生产(deploy 设 QUARTZ_PROD=1)忽略 _refer(示例/参考区)；本地预览可见。
   ignorePatterns: [
@@ -39,6 +52,7 @@ config.plugins.transformers.push(
 config.plugins.emitters.push(
   AssetManifest(), // 扁平图 → public/assets/<hash> + assets-manifest.json
   RawMarkdown(), // 每页 <slug>.md 原文 + llms.txt / llms-full.txt
+  MouseionFeed(), // 书影音 → static/mouseion.json(独立子域站的数据投影)
 )
 
 export default config

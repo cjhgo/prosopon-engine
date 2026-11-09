@@ -1,0 +1,77 @@
+:root{
+  --bg:#0b0c0d; --ink:#f0e8d8; --muted:#8f8779; --line:#28251f;
+  --celadon:#7fb8c0; --ochre:#c08a52; --wood:#3a2a20; --paper:#f7f1e4;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:
+  radial-gradient(900px 600px at 50% 0%,rgba(192,138,82,.08),transparent 65%),
+  radial-gradient(700px 500px at 85% 40%,rgba(127,184,192,.05),transparent 70%),
+  linear-gradient(180deg,#0d0e0f,#08090a 60%,#0b0c0d)}
+a{color:inherit}
+.nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:18px 34px;background:rgba(11,12,13,.72);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.06)}
+.brand{font-family:"Cormorant Garamond",Georgia,serif;font-size:15px;letter-spacing:.42em;text-decoration:none;color:var(--ink)}
+.links{display:flex;gap:24px;align-items:center;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.links a{text-decoration:none;border-bottom:1px solid transparent;padding-bottom:2px}
+.links a:hover{color:var(--ink);border-color:var(--ink)}
+.links .ext{color:var(--celadon)}
+.hero{position:relative;z-index:1;min-height:100svh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:120px 6vw 42px}
+.hero-kicker{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+.hero .mark{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:clamp(64px,13vw,208px);line-height:.82;letter-spacing:.12em;margin:0;text-indent:.12em;color:var(--ink)}
+.hero-bottom{display:flex;gap:28px;align-items:center;margin-top:38px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.scroll{color:var(--celadon);animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(5px);opacity:1}}
+.seal{position:absolute;right:5vw;top:21vh;writing-mode:vertical-rl;font-family:"Songti SC","Noto Serif CJK SC",serif;font-size:14px;letter-spacing:.36em;color:var(--celadon);border:1px solid rgba(127,184,192,.6);padding:10px 6px;line-height:1}
+main{position:relative;z-index:1}
+.realm{padding:13vh 6vw 12vh;border-top:1px solid var(--line);scroll-margin-top:64px}
+.section-head{display:flex;align-items:baseline;gap:18px;margin-bottom:34px}
+.section-head .num{font-family:"Cormorant Garamond",Georgia,serif;font-size:15px;letter-spacing:.1em;color:var(--ochre);min-width:30px}
+.section-head h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:42px;letter-spacing:.18em;margin:0}
+.section-head .desc{margin-left:auto;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+/* books */
+.bookcase{padding:34px 30px 0;background:linear-gradient(180deg,#2a1d16,#17100c);border:12px solid var(--wood);border-top-width:14px;border-bottom-width:18px;box-shadow:0 40px 80px -50px #000,inset 0 0 80px #0008;position:relative}
+.bookcase::after{content:"";position:absolute;inset:0;background:linear-gradient(118deg,rgba(255,255,255,.06),transparent 35%,rgba(255,255,255,.015) 65%,transparent);pointer-events:none}
+.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(142px,1fr));gap:24px;align-items:end}
+.book{display:flex;flex-direction:column;align-items:center;text-decoration:none;transition:transform .2s ease}
+.book:hover{transform:translateY(-6px)}
+.book-cover{height:214px;padding:7px;background:var(--paper);box-shadow:0 16px 24px -15px #000,inset 0 0 0 1px rgba(30,22,14,.08)}
+.book-cover img{height:100%;width:auto;max-width:160px;display:block;object-fit:contain}
+.book-label{display:flex;flex-direction:column;align-items:center;gap:2px;padding-top:7px;max-width:170px}
+.book-label b{font-family:"Songti SC","Noto Serif CJK SC",Georgia,serif;font-size:9px;font-weight:600;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.book-label span{font-size:7px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.shelf{height:15px;margin:26px -10px 0;background:linear-gradient(180deg,#9b704f,#6a4932 45%,#4a3020 75%,#2f1e14),repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 1px,transparent 1px 7px);box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 12px 22px -8px #000}
+/* films */
+.film-binder{background:linear-gradient(180deg,#141516,#090a0a);border:1px solid #2a2a2c;box-shadow:0 40px 80px -55px #000,inset 0 0 60px #0007;padding:20px 24px 28px}
+.film-head{display:flex;justify-content:space-between;font-size:8px;letter-spacing:.22em;color:#8b8375;border-bottom:1px solid #262628;padding-bottom:10px;margin-bottom:20px}
+.sleeve-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(218px,1fr));gap:18px}
+.sleeve{position:relative;background:#0f1011;padding:24px 10px 42px 26px;text-decoration:none;box-shadow:0 20px 30px -18px #000,0 2px 5px #0008;transition:transform .2s ease}
+.sleeve:hover{transform:translateY(-6px)}
+.perf{position:absolute;left:6px;top:8px;bottom:8px;width:11px;background-image:radial-gradient(circle,#d8d1c1 2.1px,transparent 2.5px);background-size:9px 15px;opacity:.72}
+.poster{height:268px;background:#050506;display:grid;place-items:center;box-shadow:inset 0 0 0 1px #2a2a2c;overflow:hidden}
+.poster img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.sleeve-label{position:absolute;left:26px;right:10px;bottom:9px;background:var(--paper);color:#1d1a14;padding:6px 8px;display:flex;flex-direction:column;gap:2px}
+.sleeve-label b{font-family:"Songti SC","Noto Serif CJK SC",Georgia,serif;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sleeve-label span{font-size:6.5px;color:#7a7263;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sleeve::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.12),transparent 30%,transparent 72%,rgba(255,255,255,.03));pointer-events:none}
+/* music */
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
+.wall-item{display:flex;flex-direction:column;background:#f7f1e4;color:#17140f;text-decoration:none;box-shadow:0 14px 24px -18px #000;transition:transform .18s ease;overflow:hidden}
+.wall-item:hover{transform:translateY(-4px)}
+.wall-cover{aspect-ratio:1;background:#1a1a1a;overflow:hidden}
+.wall-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.wall-meta{padding:5px 6px 6px;display:flex;flex-direction:column;gap:1px;min-height:38px}
+.wall-meta b{font-family:"Songti SC","Noto Serif CJK SC",Georgia,serif;font-size:7.6px;line-height:1.25;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wall-meta span{font-size:6.2px;color:#77705f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wall-meta em{font-size:5.8px;color:#9a917f;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foot{display:flex;justify-content:space-between;gap:24px;align-items:center;padding:34px 6vw 44px;border-top:1px solid var(--line);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.foot a{text-decoration:none;color:var(--celadon)}
+@media(max-width:760px){
+  .nav{padding:14px 18px}.links{gap:14px;font-size:8px}.links .ext{display:none}
+  .hero .mark{font-size:clamp(54px,18vw,110px)}.seal{right:4vw;top:16vh;font-size:12px}
+  .realm{padding:10vh 18px 9vh}.section-head h2{font-size:30px}.section-head .desc{display:none}
+  .bookcase{padding:18px 14px 0;border-width:8px}.book-grid{grid-template-columns:repeat(2,1fr);gap:14px}.book-cover{height:170px}
+  .sleeve-grid{grid-template-columns:1fr}.sleeve{width:100%}.poster{height:240px}
+  .wall{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px}
+  .foot{flex-direction:column;align-items:flex-start;gap:8px}
+}
