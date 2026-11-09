@@ -77,6 +77,7 @@ v4 的三处例外全部消失：
 - **folder = 唯一内容分类轴**:主题大类 + `随笔/`(短内容)。首页 `HomeSections` 按 folder 分段。
 - **Bases**（v5）：`.base` 或 md 内 ` ```base ` 由 `@quartz-community/bases-page` 渲染成 table/list/cards/gallery/board。`/mouseion/{books,film,music}/` 用嵌入 base，默认 Cards；`/mouseion/` 用 `mouseion` custom view。内容仍是普通 md + frontmatter。
 - **MOUSEION 第二载体**：主站 build 产出 `static/mouseion.json` → `mouseion-site/build.py` 生成独立全屏站 → `mouseion.junhangc.cn`。note 页仍在主站 `/mouseion/<slug>`（canonical），子域只做门面/入口。
+- **MOUSEION 3D room**：`/book/ /film/ /music/` 共用 `mouseion-site/shelf.js` 一套参数化 Three.js 场景（medium 决定版式/列数/机位/材质：书=浅色木架 2:3，影=钢架+齿孔 2:3，音=暖色木架 1:1）；数据与同源裁切封面由 `build.py` 从 feed + `assets-manifest.json` 生成，Three.js vendor 在 `mouseion-site/vendor/`，不依赖 CDN。
 - **frontmatter** 见 prosopon-source/CLAUDE.md 的通用 schema + 书影音专用字段(medium/added/creator/year/raw_tags/cover_source/cover_status)。**无 type 字段**。
 - **cover** 从 content 根写相对路径,构建时被 flattenAssets 扁平化；`socialImage` 跟着 cover 一起改写。
 

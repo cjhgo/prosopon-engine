@@ -21,6 +21,9 @@ a{color:inherit}
 .hero .mark{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:clamp(64px,13vw,208px);line-height:.82;letter-spacing:.12em;margin:0;text-indent:.12em;color:var(--ink)}
 .hero-bottom{display:flex;gap:28px;align-items:center;margin-top:38px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
 .scroll{color:var(--celadon);animation:bob 2.4s ease-in-out infinite}
+.hero-bottom .rooms{color:var(--muted)}
+.hero-bottom .rooms a{color:var(--celadon);text-decoration:none;border-bottom:1px solid rgba(127,184,192,.35)}
+.hero-bottom .rooms a:hover{color:var(--ink);border-color:var(--ink)}
 @keyframes bob{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(5px);opacity:1}}
 .seal{position:absolute;right:5vw;top:21vh;writing-mode:vertical-rl;font-family:"Songti SC","Noto Serif CJK SC",serif;font-size:14px;letter-spacing:.36em;color:var(--celadon);border:1px solid rgba(127,184,192,.6);padding:10px 6px;line-height:1}
 main{position:relative;z-index:1}
@@ -29,6 +32,10 @@ main{position:relative;z-index:1}
 .section-head .num{font-family:"Cormorant Garamond",Georgia,serif;font-size:15px;letter-spacing:.1em;color:var(--ochre);min-width:30px}
 .section-head h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:42px;letter-spacing:.18em;margin:0}
 .section-head .desc{margin-left:auto;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.section-head .enter{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--celadon);
+  text-decoration:none;border-bottom:1px solid rgba(127,184,192,.35);padding-bottom:2px;margin-left:18px;
+  transition:color .2s ease,border-color .2s ease}
+.section-head .enter:hover{color:var(--ink);border-color:var(--ink)}
 /* books */
 .bookcase{padding:34px 30px 0;background:linear-gradient(180deg,#2a1d16,#17100c);border:12px solid var(--wood);border-top-width:14px;border-bottom-width:18px;box-shadow:0 40px 80px -50px #000,inset 0 0 80px #0008;position:relative}
 .bookcase::after{content:"";position:absolute;inset:0;background:linear-gradient(118deg,rgba(255,255,255,.06),transparent 35%,rgba(255,255,255,.015) 65%,transparent);pointer-events:none}
@@ -68,7 +75,9 @@ main{position:relative;z-index:1}
 .foot a{text-decoration:none;color:var(--celadon)}
 @media(max-width:760px){
   .nav{padding:14px 18px}.links{gap:14px;font-size:8px}.links .ext{display:none}
-  .hero .mark{font-size:clamp(54px,18vw,110px)}.seal{right:4vw;top:16vh;font-size:12px}
+  .hero .mark{font-size:clamp(40px,11.5vw,110px);letter-spacing:.06em;text-indent:.06em}
+  .hero-bottom{flex-wrap:wrap;justify-content:center;gap:10px 18px;padding:0 4vw;text-align:center}
+  .seal{right:4vw;top:16vh;font-size:12px}
   .realm{padding:10vh 18px 9vh}.section-head h2{font-size:30px}.section-head .desc{display:none}
   .bookcase{padding:18px 14px 0;border-width:8px}.book-grid{grid-template-columns:repeat(2,1fr);gap:14px}.book-cover{height:170px}
   .sleeve-grid{grid-template-columns:1fr}.sleeve{width:100%}.poster{height:240px}

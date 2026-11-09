@@ -80,4 +80,5 @@ Quartz 内置 `Assets` emitter **按源目录结构**拷图 → 上线 URL = `/�
 - `flattenAssets` 读环境变量 `ASSET_BASE_URL`:**生产**(deploy)设 `https://assets.junhangc.cn` → HTML 里图 URL 指 OSS;**预览**(serve)留空 → `/assets/<hash>` 由本地 Quartz 服务。同一份源,两种产出。
 - **资产缓存**：生产把扁平图落到 `.quartz-cache/assets`（内容 hash 持久缓存，只拷新 hash）；deploy 用 `oss sync --ignore-existing` 只传新对象。预览仍落 `public/assets`。
 - **MOUSEION 子域**：主站 build 额外产 `static/mouseion.json`；`mouseion-site/build.py` 读它生成独立全屏站，`deploy.sh` 部署到 `mouseion.junhangc.cn`。条目 links 回主站 `/mouseion/<slug>`。
+- **MOUSEION 3D room**：`/book/ /film/ /music/` 由 `shelf.js` 一套参数化场景生成。封面不能走 OSS（无 CORS）：`build.py` 按 `assets-manifest.json` 找本地源图，`magick` 裁成 2:3 / 1:1 后拷进 `dist/covers/`；Three.js 在 `vendor/`。music 只展示 96 张（去重后均匀抽样），全量在 2D landing。
 - 为什么:ECS 云助手上传是分块(慢),图(大头)挪 OSS、HTML(小)留 ECS。部署管线见 aliyun-ops/references/deploy-ctx.md(含 OSS 中转 tar 治分块往返)。
