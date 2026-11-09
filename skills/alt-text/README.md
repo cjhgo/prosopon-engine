@@ -16,10 +16,9 @@ alt-text-llm generate --model <支持中文的模型>                      # ★
 alt-text-llm apply                                                  # 写回 md
 ```
 
-## 状态(2026-11-08)
-**未运行**。原因:
-1. 本机无 `OPENROUTER_API_KEY`;且需确认国内是否可达 OpenRouter。
-2. 默认出英文 alt,中文站要调 prompt/模型。
+## 状态(2026-11-09)
+**pi-alt 路径已跑通**。`pi-alt-draft.sh` 默认 `llm-center` / `deepseek-v4.1-flash-mb`（已注册到 `~/.pi/agent/models.json`；`claude-haiku`/`gemini` 当前额度耗尽 402）。dry-run 3 张封面均生成中文 alt。
+**尚未全量运行，也尚未把 alt 写回 md/HTML**：脚本目前只回填 `public/static/assets-manifest.json`，且该文件每次 build 会重生成（`alt` 归 null）。真正接入前需要做 alt 持久化 + 回写。
 
 ## 备选(更贴我们的栈)
 junhang 有 Makers / Anthropic 通道。若不想引 OpenRouter,可写一个薄脚本直接调 Anthropic messages API

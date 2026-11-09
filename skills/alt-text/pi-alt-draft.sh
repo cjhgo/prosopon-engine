@@ -44,7 +44,8 @@
 #     鉴权来自环境变量(当前 shell 已有):ANTHROPIC_AUTH_TOKEN=sk-... + ~/.pi/agent/modelbest.jwt
 #     国内直达(modelbest 自家网关,非 github/anthropic 境外域名)。
 #     支持 vision 的 provider/模型(models.json 实测可选):
-#        - llm-center-anthropic : claude-haiku-4-5-20251001 (本脚本默认,便宜快,实测好)
+#        - llm-center           : deepseek-v4.1-flash-mb (本脚本默认; 2026-11-09 注册)
+#        - llm-center-anthropic : claude-haiku-4-5-20251001 (额度已耗尽,402)
 #                                 claude-3-5-sonnet-20241022 / claude-opus-4-6 ...(21 个 vision)
 #        - llm-center-google    : gemini-2.5-flash / gemini-2.5-pro ...(全 23 个都 vision)
 #        - llm-center-openai    : gpt-4o-mini / MiniCPM-V-4.5 ...(76 个 vision)
@@ -53,8 +54,8 @@
 # 【实测通过的确切命令行】(5.5s 返回,stdout 纯文本一行,stderr 空)
 #
 #   pi --offline \
-#      --provider llm-center-anthropic \
-#      --model claude-haiku-4-5-20251001 \
+#      --provider llm-center \
+#      --model deepseek-v4.1-flash-mb \
 #      --system-prompt "你是图片 alt 文本生成器。只输出一句简洁中文描述图片内容,不要引号、不要前缀、不要解释、不要 markdown。" \
 #      -p "为这张图片生成 alt 文本" \
 #      "@/abs/path/to/image.png"
@@ -94,8 +95,8 @@ set -euo pipefail
 
 # ---- 可配置项 --------------------------------------------------------------
 MANIFEST="/Users/junhangc/workspace/prosopon-engine/quartz/public/static/assets-manifest.json"
-PROVIDER="llm-center-anthropic"
-MODEL="claude-haiku-4-5-20251001"
+PROVIDER="llm-center"
+MODEL="deepseek-v4.1-flash-mb"
 SYSTEM_PROMPT="你是图片 alt 文本生成器。只输出一句简洁、准确的中文描述图片内容，用于无障碍阅读与 SEO。不要引号、不要前缀、不要解释、不要 markdown、不要换行。"
 USER_PROMPT="为这张图片生成简洁中文 alt 文本"
 DRY_RUN=0
