@@ -5,7 +5,9 @@ import YAML, { isMap, isNode, isScalar, isSeq } from "yaml"
 
 const LOCKFILE_PATH = path.join(process.cwd(), "quartz.lock.json")
 const PLUGINS_DIR = path.join(process.cwd(), ".quartz", "plugins")
-const CONFIG_YAML_PATH = path.join(process.cwd(), "quartz.config.yaml")
+const CONFIG_YAML_PATH = process.env.QUARTZ_CONFIG
+  ? path.resolve(process.cwd(), process.env.QUARTZ_CONFIG)
+  : path.join(process.cwd(), "quartz.config.yaml")
 const DEFAULT_CONFIG_YAML_PATH = path.join(process.cwd(), "quartz.config.default.yaml")
 const TEMPLATES_DIR = path.join(process.cwd(), "quartz", "cli", "templates")
 

@@ -5,13 +5,20 @@
 
 ## 0. v5 增量（迁移后必读）
 
-- **配置分层**：`quartz.config.yaml`（官方插件/主题/`configuration`）+ `quartz.ts`（TS override）。`loadQuartzConfig()` 返回普通对象；自有 transformer/emitter **push 进去**即可，`build.ts` 直接遍历 `cfg.plugins.*`。
+- **配置分层**：`quartz.config.yaml`（官方插件/主题/`configuration`）+ `quartz.ts`（通用 entry）+ `sites/<site>/site.ts`（站点 composition）。`QUARTZ_SITE` 选 profile，`QUARTZ_CONFIG` 选 YAML；`loadQuartzConfig()` 返回普通对象，自有 transformer/emitter **push 进去**即可，`build.ts` 直接遍历 `cfg.plugins.*`。
 - **布局**：`loadQuartzLayout(overrides)`，`defaults` 是**浅合并**（只覆盖要动的 slot）；布局组件是有 `css` / `afterDOMLoaded` 属性的函数，registry 按 constructor+options 缓存实例。
 - **官方插件 = npm 依赖**：`npm install` 已带全部 `@quartz-community/*`；只有 git 源插件才需要 `npx quartz plugin install`。
 - **`publishAssets: "referenced"`**：Assets 只复制被页面引用的源资产。我们的 transformer 已把图改写成 `/assets/<hash>`，源图不再被引 → 自动不产僵尸副本，**不需要改 upstream assets.ts**。
 - **`additionalHead`**：插件 `externalResources()` 可按页注入 `<head>` 元素（函数收到当前页 `QuartzPluginData`），用来做 `rel=alternate` 等。
 - **URL 小写化**：v5 统一小写 + 连字符；中文不受影响，英文文件名会变（AliasRedirects 默认兜底）。
 - **Page types**：content / folder / tag / 404 / canvas / bases 分派；`bases-page` 把 `.base` 渲染为 table/list/cards/gallery/board。
+
+### 多站 Site Profile（本仓用法）
+
+- `QUARTZ_SITE` 选 profile（prosopon / aesvibe），`QUARTZ_CONFIG` 选 YAML，`QUARTZ_CACHE_DIR` 选每站 asset cache；默认 prosopon / 根 YAML / engine `.quartz-cache`。
+- `[leaky]` Quartz CLI 的 cwd 是 engine 根；`QUARTZ_CONFIG` 从 cwd 解析（绝对或相对）。profile 用动态 import 选，不在共享代码里按 site name 分支。
+- `[leaky]` `FlattenLocalAssets` 的 asset-registry 是 **process/磁盘级**的；两站共用一个 cache 会把主站的图/slug/本地绝对路径混进第二站的 manifest。第二站必须设 `QUARTZ_CACHE_DIR`。
+- aesvibe 图片与 HTML 同桶：生产 `FLATTEN_ASSETS=1`、`ASSET_BASE_URL` 留空 → `public/assets/<hash>`，HTML 引用 `/assets/<hash>`；预览不装 flatten，按 per-md 相对路径。主站仍用 `ASSET_BASE_URL=https://assets.junhangc.cn` + `.quartz-cache/assets`。
 
 ## 1. Quartz 的构建模型:transformer(map)→ filter → emitter(reduce)
 
@@ -23,6 +30,7 @@
 ## 2. `[leaky]` Quartz 的 `.tsx` 不是 React 运行时
 
 自定义组件(components/custom/*.tsx)长得像 React,但**服务端渲染成静态 HTML**:`useState`/`useEffect`/`onClick` 全部失效。
+
 - 交互只能走 `.beforeDOMLoaded`/`.afterDOMLoaded`(脚本字符串)+ 监听 SPA 的 `nav` 事件 + 直接操作 DOM。
 - 组件拿 props 五件套:`fileData`(本页)、`cfg`、`tree`(HTML AST)、`allFiles`(全站元数据,做列表/卡片用)、`displayClass`。
 - 我们的 CardList 就是读 `allFiles` 的 frontmatter 过滤+排序渲染——本质 `SELECT * WHERE folder ORDER BY date`。按 React 心智写必踩空。
@@ -34,6 +42,7 @@
 ## 4. `[leaky]` 图片的两端矛盾 —— 本仓最硬的坑
 
 **现象**:同一张本地图,「本地普通预览(VSCode/cweijan)」与「Quartz 上线」要求的写法相反。
+
 - 标准相对 `![](image/x.png)`:本地预览器认 ✓,但 Quartz **emit flat html**(`生活/十月的光.html`,非 `.../index.html`)+ 内链 href 无 trailing slash,导致浏览器 base 落在 `/生活/`,相对图 src 算错一层 → **碎图**。
 - wikilink `![[x.png]]`:Quartz 的 slug resolver 算对 ✓,但普通预览器不认 → 本地空白。
 
@@ -80,5 +89,6 @@ Quartz 内置 `Assets` emitter **按源目录结构**拷图 → 上线 URL = `/�
 - `flattenAssets` 读环境变量 `ASSET_BASE_URL`:**生产**(deploy)设 `https://assets.junhangc.cn` → HTML 里图 URL 指 OSS;**预览**(serve)留空 → `/assets/<hash>` 由本地 Quartz 服务。同一份源,两种产出。
 - **资产缓存**：生产把扁平图落到 `.quartz-cache/assets`（内容 hash 持久缓存，只拷新 hash）；deploy 用 `oss sync --ignore-existing` 只传新对象。预览仍落 `public/assets`。
 - **MOUSEION 子域**：主站 build 额外产 `static/mouseion.json`；`mouseion-site/build.py` 读它生成独立全屏站，`deploy.sh` 部署到 `mouseion.junhangc.cn`。条目 links 回主站 `/mouseion/<slug>`。
-- **MOUSEION 3D room**：`/book/ /film/ /music/` 由 `shelf.js` 一套参数化场景生成。封面不能走 OSS（无 CORS）：`build.py` 按 `assets-manifest.json` 找本地源图，`magick` 裁成 2:3 / 1:1 后拷进 `dist/covers/`；Three.js 在 `vendor/`。music 只展示 96 张（去重后均匀抽样），全量在 2D landing。
+- **MOUSEION 3D room**：`/book/ /film/ /music/` 由 `shelf.js` 一套参数化场景生成。封面不能走 OSS（无 CORS）：`build.py` 按 `assets-manifest.json` 找本地源图，`magick` 裁成 2:3 / 1:1 后拷进 `dist/covers/`；Three.js 在 `vendor/`。music 全量 312 个唯一封面，但用固定 8 层架框 + 每层横向滑动：每层只有「可视列 + 2 缓冲」个 mesh，纹理按槽位懒加载（256px），不随集合总量线性变重。
+- **AESTIC**：主站 `/aestic/` 的派生页，Quartz build 后由 `aestic-site/build.py` 生成到 `public/aestic/`；输入是 `assets-manifest.json`（图 + refs）与 `contentIndex.json`（slug→title）。图片直接走 `ASSET_BASE_URL`，不额外拷贝。tidy 为 CSS multicol；chaos 为 skyline 装箱的绝对定位拼贴，状态存 localStorage，仅按宽度重排。
 - 为什么:ECS 云助手上传是分块(慢),图(大头)挪 OSS、HTML(小)留 ECS。部署管线见 aliyun-ops/references/deploy-ctx.md(含 OSS 中转 tar 治分块往返)。

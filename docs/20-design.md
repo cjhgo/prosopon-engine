@@ -4,33 +4,67 @@
 
 ## 定制 vs 源码:owned 命名空间(架构纪律)
 
-> v5 起采用 **fork 内注入**（见 `50-v5-migration.md`）：定制住 fork 内，但通过 `quartz.ts` 接入，**不侵入任何 upstream 文件**。
+> v5 起采用 **fork 内注入**（见 `50-v5-migration.md`）：定制住 fork 内，但通过 `quartz.ts` + `sites/<site>/site.ts` 接入，**不侵入任何 upstream 文件**。
 
 定制只住这些地方：
 
-| 命名空间 | 承载 |
-|---|---|
-| `quartz/quartz.ts` | **注入入口**：YAML 配置 + 自有 transformer/emitter push + 布局追加（我们自己的文件） |
-| `quartz/quartz.config.yaml` | 官方插件集 + 主题/语言/`publishAssets`（配置层） |
-| `quartz/quartz/styles/custom.scss` | 唯一自定义样式入口（只写增量，不 `@use base`） |
-| `quartz/quartz/components/custom/**` | 自定义组件 |
-| `quartz/quartz/plugins/custom/**` | 自定义 transformer/emitter |
-| `quartz/quartz/static/**` | 站点静态资产（icon / og 兜底 / telescopic lib） |
-| `skills/**` | 发布/工具 skill |
+| 命名空间                             | 承载                                                                                     |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `quartz/quartz.ts`                   | **通用 composition root**：按 `QUARTZ_SITE` 选 profile；不写任何站点定制                 |
+| `quartz/sites/<site>/site.ts`        | **站点 composition policy**：config overrides / setup / transformers / emitters / layout |
+| `quartz/quartz.config.yaml`          | 主站配置：官方插件集 + 主题/语言/`publishAssets`（配置层）                               |
+| `quartz/quartz/styles/custom.scss`   | 唯一自定义样式入口（只写增量，不 `@use base`）                                           |
+| `quartz/quartz/components/custom/**` | 自定义组件                                                                               |
+| `quartz/quartz/plugins/custom/**`    | 自定义 transformer/emitter                                                               |
+| `quartz/quartz/static/**`            | 站点静态资产（icon / og 兜底 / telescopic lib）                                          |
+| `skills/**`                          | 发布/工具 skill                                                                          |
 
-**对 upstream 的侵入 = 0**：v4 时代的 `components/index.ts`、`plugins/index.ts`、`emitters/assets.ts` 三处 merge 点全部消失（分别由 `quartz.ts` 注入、`publishAssets: referenced` 取代）。升级 v5 时只需替换 `quartz/quartz/` 核心，重放 custom 目录与 `quartz.ts`。
+**对 upstream 的侵入 = 0**：v4 时代的 `components/index.ts`、`plugins/index.ts`、`emitters/assets.ts` 三处 merge 点全部消失（分别由 site profile 注入、`publishAssets: referenced` 取代）。升级 v5 时只需替换 `quartz/quartz/` 核心，重放 custom 目录与 `sites/`。
+
+## 多站: Site Profile(composition,不是 if-else)
+
+`quartz.ts` 是通用 entry；站点差异全部下沉到 `quartz/sites/<site>/site.ts`：
+
+```ts
+const site = process.env.QUARTZ_SITE ?? "prosopon";
+const profile = (await loadProfile(site)).default;
+await profile.setup?.();
+const config = await loadQuartzConfig(profile.configOverrides);
+await profile.configure?.(config);
+const base = await loadQuartzLayout();
+export const layout = (await profile.layout?.(base)) ?? base;
+```
+
+三个正交旋钮：
+
+| env                | 作用                                | 默认                     |
+| ------------------ | ----------------------------------- | ------------------------ |
+| `QUARTZ_SITE`      | 选 profile（prosopon / aesvibe）    | `prosopon`               |
+| `QUARTZ_CONFIG`    | 选 YAML（绝对或 cwd 相对）          | `cwd/quartz.config.yaml` |
+| `QUARTZ_CACHE_DIR` | 每站 asset-registry / 图片 cache 根 | `cwd/.quartz-cache`      |
+
+规则：
+
+- **共享件靠 import**（`FlattenLocalAssets`、`FrontmatterDate`、`AssetManifest`…），不靠 site-name 分支。
+- **站专属件留在各自 profile**；aesvibe 以后要自己的 transformer/emitter/component/view，加在 `sites/aesvibe/site.ts`，engine 不动。
+- `sites/prosopon/site.ts` = 天青盘 / HomeSections / SiteFooter / Mouseion / RawMarkdown / 图片扁平化（原 `quartz.ts` 内容）。
+- `sites/aesvibe/site.ts` = `FrontmatterDate` + 生产时的 `FlattenLocalAssets/AssetManifest`（`ASSET_BASE_URL` 空 → `public/assets`，图片和 HTML 同桶；预览不装 → per-md）。
+
+**每站独立 cache 是必须的**：`flattenAssets` 的 asset-registry/manifest 若共用 `cwd/.quartz-cache`，第二站会把主站的图/本地路径混进自己的 manifest。`QUARTZ_CACHE_DIR` 就是这条隔离线。
+
+**验证（2026-11-10）**：主站默认 build + 生产 build 通过；MOUSEION 367 items（music 312 唯一封面）；AESTIC 335 图；aesvibe build → postbuild → publish 线上 200。这是 docs-code-loop 的真机回写，不是设计意图。
 
 ## 扩展点地图(每个 feature 住在 Quartz 流水线哪一层)
 
 > 心智模型:Quartz 不是"一个 md parser",是一条 5 段流水线;我们的定制散在**不同层**。这决定了升级/替换时各改各的、内容永远是纯 md。
 
-| 扩展点 | 阶段 | 本仓放这的 |
-|---|---|---|
-| ① markdown parser(mdast) | 解析 | `TelescopicText`(标记 ```telescopic 块)、`FlattenLocalAssets`(改写 image/cover URL)、`FrontmatterDate`(读 date) |
-| ② HTML AST(rehype/HAST) | 后处理 | (暂未用;排版/标题锚点可放这) |
-| ③ emitters(产出文件) | 构建 | `RawMarkdown`(`.md`+`llms.txt`)、`AssetManifest`(图片台账/资产缓存)、`MouseionFeed`(`static/mouseion.json`)、contentPage 等 |
-| ④ components + 浏览器脚本 | 渲染/水合 | `CollapsibleHeaders`、`TelescopicText` 客户端、`HomeSections`、`SiteFooter`、`MarkdownSourceLink`、`MarkdownAlternate`(additionalHead) |
-| ⑤ config / layout / static | 配置 | `quartz.config.yaml`(天青盘/zh-CN/官方插件) + `quartz.ts`(注入/布局追加)、`static/telescopic`(客户端库) |
+| 扩展点                     | 阶段      | 本仓放这的                                                                                                                             |
+| -------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| ① markdown parser(mdast)   | 解析      | `TelescopicText`(标记 ```telescopic 块)、`FlattenLocalAssets`(改写 image/cover URL)、`FrontmatterDate`(读 date)                        |
+| ② HTML AST(rehype/HAST)    | 后处理    | (暂未用;排版/标题锚点可放这)                                                                                                           |
+| ③ emitters(产出文件)       | 构建      | `RawMarkdown`(`.md`+`llms.txt`)、`AssetManifest`(图片台账/资产缓存)、`MouseionFeed`(`static/mouseion.json`)、contentPage 等            |
+| ④ components + 浏览器脚本  | 渲染/水合 | `CollapsibleHeaders`、`TelescopicText` 客户端、`HomeSections`、`SiteFooter`、`MarkdownSourceLink`、`MarkdownAlternate`(additionalHead) |
+| ⑤ config / layout / static | 配置      | `quartz.config.yaml`(天青盘/zh-CN/官方插件) + `sites/prosopon/site.ts`(注入/布局追加)、`static/telescopic`(客户端库)                   |
 
 `[leaky]` 要点:**折叠标题不在 parser**(纯浏览器脚本给 DOM 加按钮);**伸缩文本解析在客户端**(parser 只标记代码块)。所以内容永远是普通 md,feature 不污染写作;各层解耦、可独立替换。
 
@@ -64,20 +98,21 @@
 
 v4 的三处例外全部消失：
 
-| v4 侵入 | v5 替代 |
-|---|---|
-| `emitters/assets.ts` 加 `isManaged()` | `configuration.publishAssets: "referenced"`（图已被改写成 `/assets/<hash>`，源图不再被引，自然不复制） |
-| `util/og.tsx` 加 CJK fallback | `vendor/og-image/` 本地 fork：Noto Sans CJK SC fallback + `.quartz-cache/og` 持久缓存；不侵入 upstream |
-| `components/index.ts` / `plugins/index.ts` 注册 | `quartz.ts` 直接 import + push / append 布局 |
+| v4 侵入                                         | v5 替代                                                                                                |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `emitters/assets.ts` 加 `isManaged()`           | `configuration.publishAssets: "referenced"`（图已被改写成 `/assets/<hash>`，源图不再被引，自然不复制） |
+| `util/og.tsx` 加 CJK fallback                   | `vendor/og-image/` 本地 fork：Noto Sans CJK SC fallback + `.quartz-cache/og` 持久缓存；不侵入 upstream |
+| `components/index.ts` / `plugins/index.ts` 注册 | `sites/<site>/site.ts` 直接 import + push / append 布局                                                |
 
-配置层：`quartz.config.yaml`（baseUrl / 天青盘 / 官方插件集 / publishAssets）+ `quartz.ts`（`ignorePatterns` 动态、自有件注入、布局追加）。
+配置层：`quartz.config.yaml`（baseUrl / 天青盘 / 官方插件集 / publishAssets）+ `sites/prosopon/site.ts`（`ignorePatterns` 动态、自有件注入、布局追加）。第二站用自己的 YAML + `sites/aesvibe/site.ts`。
 
 ## 内容组织模型(engine 侧的消费约定)
 
 - **folder = 唯一内容分类轴**:主题大类 + `随笔/`(短内容)。首页 `HomeSections` 按 folder 分段。
 - **Bases**（v5）：`.base` 或 md 内 ` ```base ` 由 `@quartz-community/bases-page` 渲染成 table/list/cards/gallery/board。`/mouseion/{books,film,music}/` 用嵌入 base，默认 Cards；`/mouseion/` 用 `mouseion` custom view。内容仍是普通 md + frontmatter。
 - **MOUSEION 第二载体**：主站 build 产出 `static/mouseion.json` → `mouseion-site/build.py` 生成独立全屏站 → `mouseion.junhangc.cn`。note 页仍在主站 `/mouseion/<slug>`（canonical），子域只做门面/入口。
-- **MOUSEION 3D room**：`/book/ /film/ /music/` 共用 `mouseion-site/shelf.js` 一套参数化 Three.js 场景（medium 决定版式/列数/机位/材质：书=浅色木架 2:3，影=钢架+齿孔 2:3，音=暖色木架 1:1）；数据与同源裁切封面由 `build.py` 从 feed + `assets-manifest.json` 生成，Three.js vendor 在 `mouseion-site/vendor/`，不依赖 CDN。
+- **MOUSEION 3D room**：`/book/ /film/ /music/` 共用 `mouseion-site/shelf.js` 一套参数化 Three.js 场景（medium 决定版式/列数/机位/材质：书=浅色木架 2:3，影=钢架+齿孔 2:3，音=暖色木架 1:1）；数据与同源裁切封面由 `build.py` 从 feed + `assets-manifest.json` 生成，Three.js vendor 在 `mouseion-site/vendor/`，不依赖 CDN。三种 medium 统一为**固定架框 + 每层独立横向滑动**：`maxRows` 定层数，可视列随视口宽变化；每层只创建「可视列 + 2 缓冲」个 mesh，纹理按槽位懒加载。数据少时自动少层（book 10 本=2 层，film 7 部=1 层），数据涨了自动溢出到该层横向滑动；总量 300→600 渲染成本不变。
+- **AESTIC（主站 `/aestic/`）**：不是 MOUSEION 的 room，而是主站的一级页面。Quartz build 后由 `aestic-site/build.py` 读 `assets-manifest.json` + `contentIndex.json`，把每一张被内容引用的图生成洗牌瀑布墙；`refs` 转成 hover 来源与点击回 note，`alt` 优先用 pi-alt 写回的真 alt。CSS native multicol + 构建期 `width/height/aspect-ratio`，无 JS 布局、无 CLS。
 - **frontmatter** 见 prosopon-source/CLAUDE.md 的通用 schema + 书影音专用字段(medium/added/creator/year/raw_tags/cover_source/cover_status)。**无 type 字段**。
 - **cover** 从 content 根写相对路径,构建时被 flattenAssets 扁平化；`socialImage` 跟着 cover 一起改写。
 

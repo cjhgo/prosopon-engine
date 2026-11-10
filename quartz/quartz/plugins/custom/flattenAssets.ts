@@ -38,7 +38,12 @@ const REGISTRY = new Map<string, AssetEntry>()
 // Quartz v5 在文件多时把解析分到 worker 线程(argv.concurrency > 1), 模块内存里的
 // REGISTRY 不跨线程共享 —— emitter 在主线程会读到空表, 导致 public/assets 不发文件、
 // manifest 为空(351 个 md 实测)。故每条登记同时落盘, emitter 从磁盘聚合。
-const REGISTRY_DIR = path.join(process.cwd(), ".quartz-cache", "asset-registry")
+// 每站独立 cache:默认仍是 engine 的 .quartz-cache(主站行为不变);
+// 第二站设 QUARTZ_CACHE_DIR,避免 asset-registry / manifest 互相污染。
+const CACHE_ROOT = process.env.QUARTZ_CACHE_DIR
+  ? path.resolve(process.cwd(), process.env.QUARTZ_CACHE_DIR)
+  : path.join(process.cwd(), ".quartz-cache")
+const REGISTRY_DIR = path.join(CACHE_ROOT, "asset-registry")
 
 function recordAsset(hash: string, absSrc: string, ext: string, size: number, slug: string) {
   try {
@@ -164,10 +169,12 @@ export const AssetManifest: QuartzEmitterPlugin = () => ({
     // 生产环境图走 OSS:把 assets 落进持久 cache(只拷新 hash),deploy 增量同步 cache。
     // 本地预览仍落 public/assets,由 dev server 直接服务。
     const prod = ASSET_BASE !== ""
-    const cacheDir = path.join(process.cwd(), ".quartz-cache", "assets")
+    const cacheDir = path.join(CACHE_ROOT, "assets")
     for (const [hash, e] of REGISTRY) {
       const destRel = `assets/${hash}${e.ext}` as FilePath
-      const dest = (prod ? path.join(cacheDir, `${hash}${e.ext}`) : joinSegments(argv.output, destRel)) as FilePath
+      const dest = (
+        prod ? path.join(cacheDir, `${hash}${e.ext}`) : joinSegments(argv.output, destRel)
+      ) as FilePath
       await fs.promises.mkdir(path.dirname(dest), { recursive: true })
       try {
         if (prod) {
