@@ -1,0 +1,72 @@
+:root{
+  --aes-bg:#08090a; --aes-ink:#f1e9da; --aes-muted:#8f8779; --aes-accent:#7fb8c0;
+}
+*{box-sizing:border-box}
+html{background:var(--aes-bg);scroll-behavior:smooth}
+body{margin:0;background:var(--aes-bg);color:var(--aes-ink);font-family:Inter,system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(1000px 600px at 50% -10%,rgba(127,184,192,.05),transparent 62%)}
+
+.aes-nav{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;
+  justify-content:space-between;padding:24px 40px;pointer-events:none;color:var(--aes-ink);
+  background:linear-gradient(180deg,rgba(8,9,10,.85),rgba(8,9,10,0))}
+.aes-nav a{pointer-events:auto;color:inherit;text-decoration:none}
+.aes-nav .brandmark{font-family:"Songti SC","Noto Serif CJK SC",serif;font-size:12px;
+  letter-spacing:.3em;color:var(--aes-muted)}
+.aes-nav .brandmark:hover{color:var(--aes-ink)}
+.aes-nav .links{display:flex;gap:26px;align-items:center;font-size:9px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--aes-muted)}
+.aes-nav .links a{padding-bottom:2px;border-bottom:1px solid transparent}
+.aes-nav .links a:hover{color:var(--aes-ink);border-color:var(--aes-ink)}
+.aes-nav .links .ext{color:var(--aes-accent)}
+
+.aes-head{position:relative;padding:118px 6vw 50px;text-align:center}
+.aes-head h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;
+  font-size:clamp(48px,10vw,136px);letter-spacing:.2em;line-height:.9;margin:0;text-indent:.2em}
+.aes-head .kicker{margin-top:18px;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--aes-muted)}
+.aes-head .seal{position:absolute;right:6vw;top:118px;writing-mode:vertical-rl;
+  font-family:"Songti SC","Noto Serif CJK SC",serif;font-size:13px;letter-spacing:.34em;
+  color:var(--aes-accent);border:1px solid var(--aes-accent);padding:9px 5px;line-height:1;opacity:.85}
+
+.aes-mode-toggle{position:fixed;right:20px;bottom:20px;z-index:16;width:30px;height:30px;
+  display:grid;place-items:center;padding:0;cursor:pointer;color:var(--aes-muted);
+  background:rgba(8,9,10,.72);border:1px solid rgba(241,233,218,.14);backdrop-filter:blur(8px)}
+.aes-mode-toggle:hover{color:var(--aes-ink);border-color:var(--aes-muted)}
+.aes-mode-toggle svg{width:16px;height:16px;fill:currentColor}
+.aes-mode-toggle .mode-chaos{display:none}
+.aes-mode-toggle[aria-pressed="true"] .mode-tidy{display:none}
+.aes-mode-toggle[aria-pressed="true"] .mode-chaos{display:initial}
+
+.aes-grid{position:relative;z-index:1;column-width:clamp(8.5rem,18vw,16rem);
+  column-gap:5px;padding:0 5px 5px}
+.aes-grid[data-mode="chaos"]{column-width:auto;padding:0;height:0;display:block}
+.aes-grid[data-mode="chaos"] .aes-item{position:absolute;margin:0;display:block}
+.aes-grid[data-mode="chaos"] .aes-item img{width:100%;height:100%;object-fit:cover}
+.aes-item{display:block;break-inside:avoid;margin:0 0 5px;background:#111;
+  text-decoration:none;color:inherit;overflow:hidden;position:relative}
+.aes-item img{display:block;width:100%;height:auto;transition:filter .25s ease}
+.aes-item:hover img{filter:brightness(.78)}
+
+.aes-caption{position:fixed;left:22px;bottom:20px;z-index:20;display:flex;gap:12px;
+  align-items:baseline;padding:8px 12px;background:rgba(8,9,10,.88);
+  border:1px solid rgba(241,233,218,.16);backdrop-filter:blur(8px);pointer-events:none}
+.aes-caption[hidden]{display:none}
+.aes-caption .t{font-family:"Songti SC","Noto Serif CJK SC",serif;font-size:12px;letter-spacing:.06em}
+.aes-caption .n{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--aes-accent)}
+
+.aes-foot{position:relative;z-index:1;display:flex;justify-content:space-between;gap:20px;
+  padding:26px 5vw 34px;border-top:1px solid rgba(255,255,255,.06);
+  font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--aes-muted)}
+.aes-foot a{color:var(--aes-muted);text-decoration:none}
+
+@media (max-width:760px){
+  .aes-nav{padding:18px 18px}
+  .aes-nav .links{gap:14px;font-size:8px}
+  .aes-nav .links .ext{display:none}
+  .aes-head{padding:96px 5vw 34px}
+  .aes-head .seal{top:88px;right:5vw;font-size:11px}
+  .aes-grid{column-width:clamp(7.5rem,30vw,12rem);column-gap:4px;padding:0 4px 4px}
+  .aes-item{margin-bottom:4px}
+  .aes-caption{left:12px;bottom:12px}
+  .aes-foot{flex-direction:column;gap:8px;padding:22px 5vw 30px}
+}

@@ -14,6 +14,7 @@ Usage: build.py <mouseion.json> [outdir] [assets-manifest.json]
 """
 import json, html, os, re, shutil, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import quote
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -28,7 +29,7 @@ ROOMS = {
                  label="films"),
     "music": dict(title="Music", numeral="III",
                   kicker="Music room · the cover wall",
-                  css="music", aspect=(1, 1), cols=12, px=(480, 480), limit=96,
+                  css="music", aspect=(1, 1), cols=12, px=(256, 256), limit=None,
                   label="records"),
 }
 
@@ -107,9 +108,9 @@ def fallback_list(items):
 
 def room_nav(medium):
     parts = []
-    for m in ("book", "film", "music"):
+    for m, label in (("book", "Books"), ("film", "Films"), ("music", "Music")):
         cls = ' class="on"' if m == medium else ""
-        parts.append(f'<a href="../{m}/"{cls}>{ROOMS[m]["title"]}</a>')
+        parts.append(f'<a href="../{m}/"{cls}>{label}</a>')
     return (f'<nav class="room-nav"><a class="brandmark" href="../">MOUSEION</a>'
             f'<div class="links">{"".join(parts)}'
             f'<a class="ext" href="https://prosopon.junhangc.cn/mouseion/" target="_blank" rel="noopener">Index ↗</a>'
@@ -119,9 +120,10 @@ def room_page(medium, meta):
     cfg = ROOMS[medium]
     total, unique, showing = meta["total"], meta["unique"], meta["showing"]
     if medium == "music":
-        counts = f'<b>{total}</b> tracks · {unique} albums · showing {showing}'
+        counts = f'<b>{total}</b> tracks · {unique} albums · all covers'
     else:
         counts = f'<b>{total}</b> {cfg["label"]}'
+    hint = "drag a shelf sideways · right-drag / background to orbit · scroll to zoom" if medium == "music" else "drag to look · scroll to zoom · click a cover"
     return f'''<!doctype html>
 <html lang="zh" data-room="{medium}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -140,7 +142,7 @@ def room_page(medium, meta):
   <div class="kicker">{cfg["kicker"]}</div>
   <div class="seal">三境居</div>
   <div class="bottom"><span id="counts">{counts}</span></div>
-  <div class="hint">drag to look · scroll to zoom · click a cover</div>
+  <div class="hint">{hint}</div>
 </div>
 <div id="fallback" hidden>
   <h2>{cfg["title"]}</h2>
@@ -233,7 +235,7 @@ def main():
 <header class="hero" id="top">
   <div class="hero-kicker">A private collection of books, films &amp; records</div>
   <h1 class="mark">MOUSEION</h1>
-  <div class="hero-bottom"><span>{esc(count_line)}</span><span class="rooms">3D rooms: <a href="./book/">Books</a> · <a href="./film/">Films</a> · <a href="./music/">Music</a></span><span class="scroll">scroll ↓</span></div>
+  <div class="hero-bottom"><span>{esc(count_line)}</span><span class="rooms">Rooms: <a href="./book/">Books</a> · <a href="./film/">Films</a> · <a href="./music/">Music</a> · </span><span class="scroll">scroll ↓</span></div>
   <div class="seal">三境居</div>
 </header>
 <main>{''.join(sections)}</main>

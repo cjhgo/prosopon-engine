@@ -6,3 +6,7 @@ vendor/og-image/node_modules/
 
 .quartz-cache/
 mouseion-site/dist/
+
+# python build/test byproducts
+__pycache__/
+*.py[cod]

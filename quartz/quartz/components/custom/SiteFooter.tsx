@@ -11,6 +11,8 @@ export default (() => {
         <p class="site-footer-meta">
           © {year}
           <span class="sep">·</span>
+          <a href="/aestic/">AESTIC</a>
+          <span class="sep">·</span>
           <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener noreferrer">
             豫ICP备2025138597号-1
           </a>

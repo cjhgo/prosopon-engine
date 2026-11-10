@@ -1,5 +1,10 @@
 // MOUSEION 3D room engine — one geometry, three mediums.
 // Reads <div id="app" data-medium="book|film|music" data-src="../data/<medium>.json">.
+//
+// book / film: one fixed shelf, all covers.
+// music: fixed frame, N fixed shelf rows; each row slides sideways independently.
+//        Only the visible slots (+2 buffer) exist/load textures, so the cost is
+//        constant as the collection grows.
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -7,7 +12,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const ROOMS = {
   book: {
-    aspect: 2 / 3, cols: 5, gap: 0.06, rowH: 0.80, coverW: 0.48, board: 0.045, depth: 0.36,
+    aspect: 2 / 3, maxRows: 2, colsWide: 5, colsMid: 4, colsNarrow: 3,
+    gap: 0.06, rowH: 0.80, coverW: 0.48, board: 0.045, depth: 0.36,
     theme: {
       bg: 0xe9e2d3, fog: [18, 46], back: 0xd8cfbd, floor: 0xcfc4ae,
       wood: 0x8a6547, woodDark: 0x5a3e2b, paper: 0xf7f1e4,
@@ -16,7 +22,8 @@ const ROOMS = {
     },
   },
   film: {
-    aspect: 2 / 3, cols: 7, gap: 0.05, rowH: 0.64, coverW: 0.38, board: 0.04, depth: 0.30,
+    aspect: 2 / 3, maxRows: 2, colsWide: 7, colsMid: 5, colsNarrow: 4,
+    gap: 0.05, rowH: 0.64, coverW: 0.38, board: 0.04, depth: 0.30,
     theme: {
       bg: 0x0b0c0d, fog: [16, 42], back: 0x111315, floor: 0x08090a,
       wood: 0x2b2e31, woodDark: 0x17191b, paper: 0x17191b,
@@ -25,7 +32,8 @@ const ROOMS = {
     },
   },
   music: {
-    aspect: 1, cols: 12, gap: 0.055, rowH: 0.58, coverW: 0.40, board: 0.045, depth: 0.34,
+    aspect: 1, maxRows: 8, colsWide: 20, colsMid: 14, colsNarrow: 8,
+    gap: 0.055, rowH: 0.58, coverW: 0.40, board: 0.045, depth: 0.34,
     theme: {
       bg: 0x0a0b0c, fog: [14, 32], back: 0x17110d, floor: 0x0c0b0a,
       wood: 0x5b3f2d, woodDark: 0x3f2b1e, paper: 0xece4d3,
@@ -69,21 +77,18 @@ function woodTexture() {
   return t;
 }
 
-function coverMaterial(tex) {
+function coverMaterial(map) {
   return new THREE.MeshStandardMaterial({
-    map: tex || null, color: tex ? 0xffffff : 0x2a2622,
+    map: map || null, color: map ? 0xffffff : 0x2a2622,
     roughness: .55, metalness: .02,
   });
 }
 
-function loadTexture(loader, url) {
-  return new Promise((resolve) => {
-    loader.load(url, (t) => {
-      t.colorSpace = THREE.SRGBColorSpace;
-      t.anisotropy = 8;
-      resolve(t);
-    }, undefined, () => resolve(null));
-  });
+function hideLoading() {
+  const loading = document.getElementById('loading');
+  if (!loading) return;
+  loading.style.opacity = 0;
+  setTimeout(() => loading.remove(), 650);
 }
 
 async function main() {
@@ -119,6 +124,12 @@ async function main() {
   controls.enableDamping = true;
   controls.dampingFactor = .06;
   controls.maxPolarAngle = 1.62;
+  // left-drag on an overflowing shelf row slides it; right-drag always orbits.
+  controls.mouseButtons = {
+    LEFT: THREE.MOUSE.ROTATE,
+    MIDDLE: THREE.MOUSE.DOLLY,
+    RIGHT: THREE.MOUSE.ROTATE,
+  };
 
   scene.add(new THREE.HemisphereLight(theme.hemi[0], theme.hemi[1], theme.hemi[2]));
   const key = new THREE.DirectionalLight(theme.dir, theme.dirI);
@@ -133,10 +144,12 @@ async function main() {
   scene.add(warm, warm.target);
   scene.add(new THREE.AmbientLight(theme.paper, theme.metal ? .08 : .12));
 
-  // ---------- geometry ----------
+  // ---------- frame geometry ----------
   const coverH = cfg.coverW / cfg.aspect;
-  const rows = Math.ceil(items.length / cfg.cols);
-  const W = cfg.cols * cfg.coverW + (cfg.cols - 1) * cfg.gap + .18;
+  const aspect = innerWidth / innerHeight;
+  const visibleCols = aspect < .7 ? cfg.colsNarrow : aspect < 1.2 ? cfg.colsMid : cfg.colsWide;
+  const rows = Math.min(cfg.maxRows, Math.max(1, Math.ceil(items.length / visibleCols)));
+  const W = visibleCols * cfg.coverW + (visibleCols - 1) * cfg.gap + .18;
   const H = rows * cfg.rowH + cfg.board;
 
   const wood = woodTexture();
@@ -183,40 +196,165 @@ async function main() {
   floor.receiveShadow = true;
   scene.add(floor);
 
-  // ---------- textures + covers ----------
+  // ---------- cover meshes ----------
   const loader = new THREE.TextureLoader();
-  const textures = await Promise.all(items.map((it) => loadTexture(loader, it.cover)));
+  const texCache = new Map(); // url -> Promise<Texture|null>
+  function textureFor(url) {
+    if (!texCache.has(url)) {
+      texCache.set(url, new Promise((resolve) => {
+        loader.load(url, (t) => {
+          t.colorSpace = THREE.SRGBColorSpace;
+          t.anisotropy = 8;
+          resolve(t);
+        }, undefined, () => resolve(null));
+      }));
+    }
+    return texCache.get(url);
+  }
 
   const pickables = [];
   const geo = new RoundedBoxGeometry(cfg.coverW, coverH, cfg.depth, 3, .004);
   const rimGeo = new THREE.PlaneGeometry(cfg.coverW + .012, coverH + .012);
   const faceGeo = new THREE.PlaneGeometry(cfg.coverW - .006, coverH - .006);
+  const baseCaseMat = theme.metal ? metalDark : darkMat;
 
-  items.forEach((it, i) => {
-    const row = Math.floor(i / cfg.cols), col = i % cfg.cols;
-    const x = -W / 2 + .09 + col * (cfg.coverW + cfg.gap) + cfg.coverW / 2;
-    const y = row * cfg.rowH + cfg.board + (cfg.rowH - cfg.board - coverH) / 2 + coverH / 2;
+  const rowY = (r) => r * cfg.rowH + cfg.board + (cfg.rowH - cfg.board - coverH) / 2 + coverH / 2;
 
-    const caseMat = theme.metal ? metalDark : darkMat;
-    const caseMesh = new THREE.Mesh(geo, caseMat);
-    caseMesh.position.set(x, y, 0);
-    caseMesh.castShadow = true; caseMesh.receiveShadow = true;
-    caseMesh.userData.href = it.href;
-    wall.add(caseMesh);
-    pickables.push(caseMesh);
+  // Fixed frame + per-row sliding strips. Only visible slots exist.
+    renderer.localClippingEnabled = true;
+    const clipL = new THREE.Plane(new THREE.Vector3(1, 0, 0), -(-W / 2 + .02));
+    const clipR = new THREE.Plane(new THREE.Vector3(-1, 0, 0), W / 2 - .02);
+    const clip = [clipL, clipR];
+    const caseMat = baseCaseMat.clone(); caseMat.clippingPlanes = clip;
+    const rimClip = rimMat.clone(); rimClip.clippingPlanes = clip;
 
-    const rim = new THREE.Mesh(rimGeo, rimMat);
-    rim.position.set(x, y, cfg.depth / 2 + .001);
-    wall.add(rim);
+    const slots = visibleCols + 2;
+    const perRow = Math.ceil(items.length / rows);
+    const rowItems = Array.from({ length: rows }, (_, r) =>
+      items.slice(r * perRow, Math.min(items.length, (r + 1) * perRow)));
+    const offsets = new Array(rows).fill(0);
+    const pools = [];
 
-    const face = new THREE.Mesh(faceGeo, coverMaterial(textures[i]));
-    face.position.set(x, y, cfg.depth / 2 + .003);
-    face.userData.href = it.href;
-    wall.add(face);
-    pickables.push(face);
-  });
+    for (let r = 0; r < rows; r++) {
+      const y = rowY(r);
+      const pool = [];
+      for (let s = 0; s < slots; s++) {
+        const c = new THREE.Mesh(geo, caseMat);
+        c.position.set(0, y, 0);
+        c.castShadow = true; c.receiveShadow = true;
+        wall.add(c); pickables.push(c);
 
-  // ---------- lights follow wall size ----------
+        const rim = new THREE.Mesh(rimGeo, rimClip);
+        rim.position.set(0, y, cfg.depth / 2 + .001);
+        wall.add(rim);
+
+        const fm = coverMaterial(null); fm.clippingPlanes = clip;
+        const face = new THREE.Mesh(faceGeo, fm);
+        face.position.set(0, y, cfg.depth / 2 + .003);
+        wall.add(face); pickables.push(face);
+
+        pool.push({ case: c, rim, face, url: null });
+      }
+      pools.push(pool);
+    }
+
+    const maxOff = rowItems.map((list) => Math.max(0, list.length - visibleCols));
+    const hintEl = document.querySelector('.hint');
+    if (hintEl && maxOff.some((x) => x > 0)) {
+      hintEl.textContent = 'drag a shelf sideways · right-drag / background to orbit · scroll to zoom';
+    }
+
+    function placeRow(r) {
+      const list = rowItems[r], off = offsets[r];
+      const start = Math.floor(off) - 1;
+      for (let s = 0; s < slots; s++) {
+        const c2 = start + s;
+        const slot = pools[r][s];
+        if (c2 < 0 || c2 >= list.length) {
+          slot.case.visible = slot.rim.visible = slot.face.visible = false;
+          slot.url = null;
+          continue;
+        }
+        const x = -W / 2 + .09 + (c2 - off) * (cfg.coverW + cfg.gap) + cfg.coverW / 2;
+        slot.case.visible = slot.rim.visible = slot.face.visible = true;
+        slot.case.position.x = x;
+        slot.rim.position.x = x;
+        slot.face.position.x = x;
+        const it = list[c2];
+        slot.case.userData.href = it.href;
+        slot.face.userData.href = it.href;
+        if (slot.url !== it.cover) {
+          slot.url = it.cover;
+          const m = slot.face.material;
+          m.map = null; m.color.setHex(0x2a2622); m.needsUpdate = true;
+          textureFor(it.cover).then((t) => {
+            if (slot.url === it.cover && t) {
+              m.map = t; m.color.setHex(0xffffff); m.needsUpdate = true;
+            }
+          });
+        }
+      }
+    }
+
+    rowItems.forEach((_, r) => placeRow(r));
+    // Wait only for the first screenful, not the whole collection.
+    Promise.all(pools.flat().filter((s) => s.url).map((s) => textureFor(s.url)))
+      .then(hideLoading);
+
+    // ---------- per-row drag ----------
+    const rowRay = new THREE.Raycaster();
+    const rowPtr = new THREE.Vector2();
+    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const hit = new THREE.Vector3();
+    function rowAt(e) {
+      rowPtr.x = (e.clientX / innerWidth) * 2 - 1;
+      rowPtr.y = -(e.clientY / innerHeight) * 2 + 1;
+      rowRay.setFromCamera(rowPtr, camera);
+      if (!rowRay.ray.intersectPlane(plane, hit)) return -1;
+      const r = Math.floor((hit.y - cfg.board) / cfg.rowH);
+      return r >= 0 && r < rows ? r : -1;
+    }
+
+    let drag = null;
+    // Capture phase: if the press starts on a shelf row, reserve the gesture for
+    // row-sliding and keep OrbitControls from rotating. Press outside the rows
+    // falls through to OrbitControls, so the shelf still orbits in 3D.
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      window.__mouseionRowDragged = false;
+      if (e.button !== 0) return;
+      const r = rowAt(e);
+      if (r < 0 || maxOff[r] <= 0) return;
+      controls.enableRotate = false;
+      drag = { row: r, x: e.clientX, off: offsets[r], moved: 0 };
+    }, true);
+    renderer.domElement.addEventListener('pointermove', (e) => {
+      if (!drag) { renderer.domElement.style.cursor = pick(e) ? 'pointer' : 'grab'; return; }
+      const dx = e.clientX - drag.x;
+      drag.moved = Math.max(drag.moved, Math.abs(dx));
+      if (Math.abs(dx) > 2) {
+        const dist = camera.position.distanceTo(controls.target);
+        const perPx = 2 * dist * Math.tan(15 * Math.PI / 180) * camera.aspect / innerWidth;
+        const off = drag.off - dx * perPx / (cfg.coverW + cfg.gap);
+        offsets[drag.row] = Math.max(0, Math.min(maxOff[drag.row], off));
+        placeRow(drag.row);
+        renderer.domElement.style.cursor = 'grabbing';
+      }
+    });
+    function endRowDrag() {
+      controls.enableRotate = true;
+      if (!drag) return;
+      window.__mouseionRowDragged = drag.moved > 4;
+      offsets[drag.row] = Math.round(offsets[drag.row]);
+      placeRow(drag.row);
+      drag = null;
+      renderer.domElement.style.cursor = 'grab';
+    }
+    renderer.domElement.addEventListener('pointerup', endRowDrag);
+    renderer.domElement.addEventListener('pointercancel', endRowDrag);
+    addEventListener('pointerup', endRowDrag);
+    addEventListener('pointercancel', endRowDrag);
+
+  // ---------- lights follow frame ----------
   key.position.set(W * .35, H * .9, 4.8);
   key.target.position.set(0, H * .45, 0);
   scene.add(key.target);
@@ -231,7 +369,7 @@ async function main() {
   warm.target.position.set(0, H * .5, 0);
   warm.distance = Math.max(22, H * 3);
 
-  // ---------- camera framing ----------
+  // ---------- camera ----------
   function fit() {
     const vFov = 30 * Math.PI / 180;
     const dV = (H / 2 + .2) / Math.tan(vFov / 2);
@@ -245,11 +383,10 @@ async function main() {
   }
   fit();
 
-  // ---------- interaction ----------
+  // ---------- click ----------
   const ray = new THREE.Raycaster();
   const ptr = new THREE.Vector2();
   let down = null;
-
   function pick(e) {
     ptr.x = (e.clientX / innerWidth) * 2 - 1;
     ptr.y = -(e.clientY / innerHeight) * 2 + 1;
@@ -259,17 +396,15 @@ async function main() {
 
   renderer.domElement.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
   renderer.domElement.addEventListener('pointerup', (e) => {
+    if (e.button !== 0) return;
+    const wasRowDrag = window.__mouseionRowDragged;
     if (!down) return;
     const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
     down = null;
-    if (moved > 10) return;
-    const hit = pick(e);
-    if (hit?.object.userData.href) window.open(hit.object.userData.href, '_blank', 'noopener');
+    if (wasRowDrag || moved > 10) return;
+    const hitObj = pick(e);
+    if (hitObj?.object.userData.href) window.open(hitObj.object.userData.href, '_blank', 'noopener');
   });
-  renderer.domElement.addEventListener('pointermove', (e) => {
-    renderer.domElement.style.cursor = pick(e) ? 'pointer' : 'grab';
-  });
-
   let framedAspect = camera.aspect;
   addEventListener('resize', () => {
     camera.aspect = innerWidth / innerHeight;
@@ -285,12 +420,6 @@ async function main() {
     controls.update();
     renderer.render(scene, camera);
   });
-
-  const loading = document.getElementById('loading');
-  if (loading) {
-    loading.style.opacity = 0;
-    setTimeout(() => loading.remove(), 650);
-  }
 }
 
 main().catch(fail);

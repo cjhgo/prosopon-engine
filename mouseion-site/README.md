@@ -20,8 +20,9 @@ dist/
 - 封面**不能直接走 `assets.junhangc.cn`**（OSS 未配 CORS，TextureLoader 会炸）：
   `build.py` 用 `assets-manifest.json` 把 feed 的 cover hash 映射回本地源图，
   `magick` 裁成 book/film 2:3、music 1:1 后拷进 `dist/covers/`，3D 用同源路径。
-- music 全量 350 条 / 312 个唯一封面；room 为可读性只展示 96 张（按封面去重后均匀抽样），
-  页面标注 `350 tracks · 312 albums · showing 96`，2D landing 的 music 墙是全量入口。
+- music 全量 350 条 / 312 个唯一封面，全部可达：固定 8 层架框，每层独立横向滑动
+  （每层只创建「可视列 + 2 缓冲」个 mesh，纹理按槽位懒加载），所以集合继续增长时
+  渲染成本不变。拖某一层 = 滑该层；拖背景或右键拖 = 旋转（三视图）。书/影仍是一屏定版。
 - 缩略图/封面加载失败、WebGL 不可用时，页面降级到静态文字列表（`#fallback`）；
   JS 完全关闭时 `<noscript>` 也会展开同一份列表。
 
