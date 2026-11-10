@@ -83,11 +83,6 @@ def page(items):
   <a class="brandmark" href="https://prosopon.junhangc.cn/">生活工作读书新知</a>
   <div class="links"><a href="https://mouseion.junhangc.cn/">MOUSEION ↗</a><a class="ext" href="https://prosopon.junhangc.cn/mouseion/">INDEX ↗</a></div>
 </nav>
-<header class="aes-head">
-  <div class="seal">觉</div>
-  <h1>AESTIC</h1>
-  <div class="kicker">αἴσθησις · {len(items)} images · reshuffled every visit</div>
-</header>
 <main class="aes-grid" id="aes-grid">{"".join(item_html(x) for x in items)}</main>
 <div class="aes-caption" id="aes-caption" hidden><span class="t"></span><span class="n"></span></div>
 <footer class="aes-foot"><span>AESTIC · images link back to their notes</span><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2025138597号-1</a></footer>
