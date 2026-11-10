@@ -58,11 +58,11 @@ scripts/publish.sh     # build + postbuild + oss sync-site → www.aesvibe.fun
 cd quartz
 QUARTZ_SITE=aesvibe \
 QUARTZ_CONFIG=../../prosopon-source/aesvibe/quartz.config.yaml \
-QUARTZ_CACHE_DIR=../../prosopon-source/aesvibe/.quartz-cache \
+QUARTZ_CACHE_DIR=/tmp/aesvibe-cache \
 FLATTEN_ASSETS=1 \
-npx quartz build -d ../../prosopon-source/aesvibe/content -o ../../prosopon-source/aesvibe/public
-python3 ../../prosopon-source/aesvibe/scripts/postbuild.py ../../prosopon-source/aesvibe/public
-../../oikos/prosopon/skills/aliyun-ops/bin/oss sync-site ../../prosopon-source/aesvibe/public \
+npx quartz build -d ../../prosopon-source/aesvibe/content -o /tmp/aesvibe-public
+python3 ../../prosopon-source/aesvibe/scripts/postbuild.py /tmp/aesvibe-public
+../../oikos/prosopon/skills/aliyun-ops/bin/oss sync-site /tmp/aesvibe-public \
   --bucket aesvibe-fun --region cn-hongkong
 ```
 
@@ -88,8 +88,9 @@ prosopon-engine/       本仓,代码载体                       git@github.com:
 - `quartz/public/static/assets-manifest.json` — 图片台账。
 - `quartz/node_modules/` — gitignore。
 - `.quartz-cache/` — **持久构建缓存**：`assets/`（内容 hash 扁平图，生产源）、`og/`（OG webp）、`fonts/`（CJK OTF）、`mouseion-dist/`（子域站产物）。默认保留以保持 warm build / 增量 OSS。
-- `prosopon-source/aesvibe/public/` — 第二站产物（gitignore）；HTML + 扁平图同目录。
-- `prosopon-source/aesvibe/.quartz-cache/` — 第二站独立 asset-registry（`QUARTZ_CACHE_DIR`），不与主站混。
+- `/tmp/aesvibe-public/` — 第二站发布产物；HTML + 扁平图同目录（不进源 repo）。
+- `/tmp/aesvibe-preview/` — 第二站预览产物。
+- `/tmp/aesvibe-cache/` — 第二站独立 asset-registry（`QUARTZ_CACHE_DIR`），不与主站混。
 
 ## 部署(prosopon-source 内容 → 公网)
 
